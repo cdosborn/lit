@@ -11,7 +11,6 @@ import System.IO
  -
  -}
 
-
 build outputDir files = 
     let outputPaths = map (\f -> outputDir ++ (fileNameFromPath f)) files 
     in mapM readFile files >>= (sequence . zipWith process outputPaths) >> return ()
@@ -38,17 +37,23 @@ chunk = (try def) <|> skipLine
 def = do
     (indent, header) <- title
     nls <- many newline
-    lines <- manyTill (defLine indent) (endDef indent)
+    lines <- manyTill (grabNL <|> defLine indent) (endDef indent)
     return (header ++ nls ++ (concat lines))
 
 defLine indent = do
     (string indent) 
     line <- takeLine 
-    nls <- many newline
     case (endDef indent) of 
-        _ -> return (line ++ nls)
+        _ -> return line
 
-endDef indent = (notFollowedBy (string indent) <|> (try title >> parserReturn ()))
+-- pretty fucking ugly code 
+-- probably doesn't need a try, since only one char
+grabNL = do
+    nl <- try newline
+    return $ nl:""
+
+endDef indent = try (skipMany newline >> (notFollowedBy (string indent) <|> ((lookAhead title) >> parserReturn ())))
+
 
 skipLine :: Parser String
 skipLine = many (noneOf "\n\r") >> eol >> return ""
@@ -75,40 +80,3 @@ closeDelim = string ">>="
 ws = space <|> char '\t'  -- consume a whitespace char
 
 eol = char '\n' <|> char '\r'
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
