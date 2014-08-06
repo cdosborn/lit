@@ -1,31 +1,84 @@
---module Test 
---(..) where
-
-import Text.Parsec
-import Text.Parsec.String
-import Parse
-{- 
- - TODO:
- - allow more within a title right now only accepts "0-9a-zA-Z"
- - allow << ... >>=\n to have whitespace before \n
- - reduce unnecessary parens in methods (title)
- -}
-
---main = parseTest title "\t\t  << asddf df >>=\n"
---main = parseTest (many takeLine) "asfdasdf\rasasf\n"
---main = parseTest skipLine "asfdasdf\rasasf\n"
---main = parseTest (skipLine >> many anyChar) "\n\nasfdasdf\rasasf\n"
---main = parseTest (defLine "    ") "    asfdasdf\rasasf\n"
---main = parseTest (manyTill takeLine (try (difIndent "    "))) "    asdfd\n  asasf\nasdf"
---main = parseTest def "    << asddf df >>=\n    asdfd\n  asasf\nasdf"
---main = parseTest (many chunk) "    << asddf df >>=\n    asdfd\n  asasf\nasdf\n<< asddf df >>=\nasdfd\n"
---main = parseTest entire "    << asddf df >>=\n    asdfd\n  asasf\nasdf\n<< asddf df >>=\nasdfd\n"
---main = parseTest (skipMany newline >> endDef  "    " >> (many anyChar)) "\n\n\n         << asddf df >>=\n\n    asdfd\n  asasf\nasdf"
---main = parseTest ((manyTill grabLine (try (endDef "    "))) >> many anyChar) "    asdfd\n  asasf\nasdf"
---main = parseTest (part "  ") "  << asddf df >>\n"
---main = parseTest def "  << asddf df >>=\n  asdfd\n  asasf"
-main = parseFromFile entire "lit-docs/ab.oo.lit"
-
---parseFromFile p fname = do
---    input <- readFile fname 
---    return (runParser p () fname input)
+   import System.Console.GetOpt
+   import Control.Monad
+   import System.Environment
+   import System.IO
+   import System.Exit
+   
+   import Processing
+   
+   data Options = Options  { optCodeDir  :: String 
+                           , optHtmlDir  :: String
+                           , optCodeOnly :: Bool
+                           , optHtmlOnly :: Bool
+                           }
+   
+   startOptions :: Options
+   startOptions = Options  { optCodeDir  = "./"
+                           , optHtmlDir  = "./"
+                           , optCodeOnly = False
+                           , optHtmlOnly = False
+                           }
+   
+   options :: [ OptDescr (Options -> IO Options) ]
+   options =
+       [ Option "d" ["html-only"]
+           (NoArg (\opt -> return opt { optHtmlOnly = True }))
+           "Generate html docs"
+         
+        , Option "" ["html-dir"]
+           (ReqArg
+               (\arg opt -> return opt { optCodeDir = arg })
+               "DIR")
+           "Directory for generated html"
+   
+       , Option "c" ["code-only"]
+           (NoArg (\opt -> return opt { optCodeOnly = True }))
+           "Generate code by file extension"
+   
+        , Option "" ["code-dir"]
+           (ReqArg
+               (\arg opt -> return opt { optCodeDir = arg })
+               "DIR")
+           "Directory for generated code"
+    
+       , Option "v" ["version"]
+           (NoArg
+               (\_ -> do
+                   hPutStrLn stderr "Version 0.01"
+                   exitWith ExitSuccess))
+           "Print version"
+    
+       , Option "h" ["help"]
+           (NoArg
+               (\_ -> do
+                   prg <- getProgName
+                   hPutStrLn stderr (usageInfo header options)
+                   exitWith ExitSuccess))
+           "Display help"
+       ]
+   
+   header = "Usage: lit [OPTION...] FILES..."
+   
+   main = do
+       args <- getArgs
+    
+       -- Parse options, getting a list of option actions
+       let (actions, files, errors) = getOpt RequireOrder options args
+       
+       -- Here we thread startOptions through all supplied option actions
+       opts <- foldl (>>=) (return startOptions) actions
+    
+       let Options { optCodeDir  = codeDir
+                   , optHtmlDir  = htmlDir
+                   , optCodeOnly = onlyCode
+                   , optHtmlOnly = onlyHtml
+                   } = opts
+   
+       if (errors /= [] || (onlyHtml && onlyCode))
+       then hPutStrLn stderr ((concat errors) ++ header)
+       else if onlyCode         
+       then hPutStrLn stderr "... not done"
+       else if onlyHtml
+       then hPutStrLn stderr "... not done"
+       else Processing.buildAll codeDir htmlDir files
+   --       Prose.write pathToSource pathToOutput files

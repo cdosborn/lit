@@ -4,8 +4,7 @@ import System.Environment
 import System.IO
 import System.Exit
 
-import Macro (build)
---import Prose
+import Processing
 
 data Options = Options  { optCodeDir  :: String 
                         , optHtmlDir  :: String
@@ -80,6 +79,6 @@ main = do
     else if onlyCode         
     then hPutStrLn stderr "... not done"
     else if onlyHtml
-    then hPutStrLn stderr "... not done" -- only HTM
-    else Macro.build codeDir files
+    then hPutStrLn stderr "... not done"
+    else Processing.buildAll codeDir htmlDir files
 --       Prose.write pathToSource pathToOutput files
