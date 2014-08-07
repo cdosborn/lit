@@ -1,5 +1,4 @@
 import System.Console.GetOpt
-import Control.Monad
 import System.Environment
 import System.IO
 import System.Exit
