@@ -1,3 +1,5 @@
+module Main where
+
 import System.Console.GetOpt
 import System.Environment
 import System.IO
@@ -74,10 +76,11 @@ main = do
                 } = opts
 
     if (errors /= [] || (onlyHtml && onlyCode))
-    then hPutStrLn stderr ((concat errors) ++ header)
-    else if onlyCode         
-    then hPutStrLn stderr "... not done"
-    else if onlyHtml
-    then Processing.buildHtml htmlDir files
-    else Processing.buildAll codeDir htmlDir files
---       Prose.write pathToSource pathToOutput files
+      then hPutStrLn stderr ((concat errors) ++ header)
+      else 
+      if onlyCode         
+        then hPutStrLn stderr "... not done"
+        else 
+        if onlyHtml
+          then Processing.buildHtml htmlDir files
+          else Processing.buildAll codeDir htmlDir files
