@@ -9,23 +9,15 @@ import Control.Monad (zipWithM)
 import Data.Sequence (Seq, singleton)
 import qualified Data.HashMap.Strict as Map
 import qualified Data.Text as T
-import qualified Data.Text.Lazy as TL
 
-
-import Cheapskate
-import Cheapskate.Html
-import Cheapskate.Types
-import Text.Blaze
-import Text.Blaze.Html5 hiding (map, mark)
-import Text.Blaze.Html5.Attributes
-import Text.Blaze.Html.Renderer.Text (renderHtml)
-import Text.Blaze.Html.Renderer.Text (renderHtml)
 import Parse
+import Pretty
+import Types
 
 buildAll codeDir htmlDir files =
     let htmlOutputPaths = map (\f -> htmlDir ++ (fileNameFromPath f) ++ ".html") files 
         codeOutputPaths = map (\f -> codeDir ++ (fileNameFromPath f)) files 
-        htmlPipeline = (\out enc -> (writeFile out) $ mark enc)
+        htmlPipeline = (\out enc -> (writeFile out) $ Pretty.mark enc)
         codePipeline = (\out enc -> (writeFile out) . expand $ merge enc)
     in do
         streams <- mapM readFile files 
@@ -36,7 +28,7 @@ buildAll codeDir htmlDir files =
 buildHtml htmlDir files =
     let htmlOutputPaths = map (\f -> htmlDir ++ (fileNameFromPath f) ++ ".html") files 
         streams = mapM readFile files
-        pipeline = (\out f -> (writeFile out) . mark $ encode f)
+        pipeline = (\out f -> (writeFile out) . Pretty.mark $ encode f)
     in (zipWithM pipeline htmlOutputPaths =<< streams) >> return ()
 
 buildCode codeDir files =
@@ -102,43 +94,8 @@ expandParts parts partMap =
     let 
         toText = (\part -> 
             case part of
-            Parse.Code txt -> txt
+            Code txt -> txt
             Ref name -> expandParts refParts partMap
                 where refParts = Map.lookupDefault [] name partMap)
     in 
         T.concat (map toText parts)
-
-mark :: [Chunk] -> T.Text
-mark chunks = TL.toStrict $ renderHtml $ preface $ preEscapedToHtml $ map chunkToHtml chunks
-
-preface rest = docTypeHtml $ do 
-    head $ do
---      title "Introduction page."
-        link ! rel "stylesheet" ! type_ "text/css" ! href "default.css"
-    body $ do rest
-
-chunkToHtml :: Chunk -> Html
-chunkToHtml chunk =
-    case chunk of
-    Prose txt -> toMarkup $ markdown Cheapskate.def txt
-    Def _ name parts -> 
-        let 
-            header = headerToHtml name
-            htmlParts = preEscapedToHtml $ map partToHtml parts
-        in pre $ code $ (header >> htmlParts)
-
-partToHtml :: Part -> Html
-partToHtml part =
-    case part of
-    Parse.Code txt -> toHtml txt
-    Ref txt -> preEscapedToHtml  ("<< " `T.append` link `T.append` " >>\n")
-        where
-            link = "<a href=\"#" `T.append` slim `T.append` "\">" `T.append` slim `T.append` "</a>"
-            slim = T.strip txt
-
-headerToHtml :: T.Text -> Html
-headerToHtml name =  
-    preEscapedToHtml $ "<< " `T.append` link `T.append` " >>=\n"
-    where
-        link = "<a id=\"" `T.append` slim `T.append` "\" href=\"#" `T.append` slim `T.append` "\">" `T.append` slim `T.append` "</a>"
-        slim = T.strip name

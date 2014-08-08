@@ -21,7 +21,7 @@ cabal-version:       >=1.8
 executable lit
   main-is:           lit.hs  
   hs-source-dirs:    src
-  other-modules:     Parse, Processing
+  other-modules:     Parse, Processing, Pretty, Types
   build-depends:     base ==4.5.* , 
                      text, 
                      regex-compat ==0.95.* , 
@@ -30,4 +30,5 @@ executable lit
                      unordered-containers ==0.2.*, 
                      cheapskate ==0.1.*, 
                      blaze-markup ==0.6.*, 
-                     blaze-html ==0.7.*
+                     blaze-html ==0.7.*,
+                     highlighting-kate

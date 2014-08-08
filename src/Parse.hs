@@ -6,9 +6,7 @@ import Text.Parsec
 import Text.Parsec.Text
 import qualified Data.Text as T
 
-data Chunk = Def Int T.Text [Part] | Prose T.Text deriving (Show)
-data Part = Code T.Text | Ref T.Text deriving (Show)
-type Program = [Chunk]
+import Types
 
 encode :: T.Text -> [Chunk]
 encode txt =
