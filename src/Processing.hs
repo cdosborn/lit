@@ -23,19 +23,29 @@ import Text.Blaze.Html.Renderer.Text (renderHtml)
 import Parse
 
 buildAll codeDir htmlDir files =
-    let codeOutputPaths = map (\f -> codeDir ++ (fileNameFromPath f)) files 
-        htmlOutputPaths = map (\f -> htmlDir ++ (fileNameFromPath f)) files 
-        streams = mapM readFile files
-        pipeline = (\out f -> (writeFile out) . expand . merge $ encode f)
-      --pipeline = (\out f -> (writeFile out) {-. expand . merge-}. show $ encode f)
-    in (zipWithM pipeline codeOutputPaths =<< streams) >> return ()
+    let htmlOutputPaths = map (\f -> htmlDir ++ (fileNameFromPath f) ++ ".html") files 
+        codeOutputPaths = map (\f -> codeDir ++ (fileNameFromPath f)) files 
+        htmlPipeline = (\out enc -> (writeFile out) $ mark enc)
+        codePipeline = (\out enc -> (writeFile out) . expand $ merge enc)
+    in do
+        streams <- mapM readFile files 
+        encoded <- mapM (\str -> return $ encode str) streams 
+        (zipWithM codePipeline codeOutputPaths encoded)
+        (zipWithM htmlPipeline htmlOutputPaths encoded) >> return ()
 
 buildHtml htmlDir files =
     let htmlOutputPaths = map (\f -> htmlDir ++ (fileNameFromPath f) ++ ".html") files 
         streams = mapM readFile files
-      --pipeline = (\out f -> putStr . show $ encode f)
         pipeline = (\out f -> (writeFile out) . mark $ encode f)
     in (zipWithM pipeline htmlOutputPaths =<< streams) >> return ()
+
+buildCode codeDir files =
+    let codeOutputPaths = map (\f -> codeDir ++ (fileNameFromPath f)) files 
+        streams = mapM readFile files
+        pipeline = (\out f -> (writeFile out) . expand . merge $ encode f)
+    in (zipWithM pipeline codeOutputPaths =<< streams) >> return ()
+
+
 
 merge :: [Chunk] -> [Chunk]
 merge chunks = mergeAux [] (filter isDef chunks)

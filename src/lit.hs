@@ -82,5 +82,5 @@ main = do
         then hPutStrLn stderr "... not done"
         else 
         if onlyHtml
-          then Processing.buildHtml htmlDir files
+          then hPutStrLn stderr "... not done"
           else Processing.buildAll codeDir htmlDir files
