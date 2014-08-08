@@ -62,7 +62,7 @@ main = do
     args <- getArgs
  
     -- Parse options, getting a list of option actions
-    let (actions, files, errors) = getOpt RequireOrder options args
+    let (actions, files, errors) = getOpt Permute options args
     
     -- Here we thread startOptions through all supplied option actions
     opts <- foldl (>>=) (return startOptions) actions
@@ -78,6 +78,6 @@ main = do
     else if onlyCode         
     then hPutStrLn stderr "... not done"
     else if onlyHtml
-    then hPutStrLn stderr "... not done"
+    then Processing.buildHtml htmlDir files
     else Processing.buildAll codeDir htmlDir files
 --       Prose.write pathToSource pathToOutput files
