@@ -30,5 +30,5 @@ executable lit
                      unordered-containers ==0.2.*, 
                      cheapskate ==0.1.*, 
                      blaze-markup ==0.6.*, 
-                     blaze-html ==0.7.*,
+                     blaze-html,
                      highlighting-kate

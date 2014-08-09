@@ -86,3 +86,12 @@ fileNameFromPath path =
     in case m of 
         Just (fst:rest) -> fst
         Nothing -> ""
+
+getLang :: String -> String
+getLang path =
+    let r = mkRegex "\\w+\\.(\\w+)\\.html$"
+        m = matchRegex r path 
+    in case m of 
+        Just (fst:rest) -> fst
+        Nothing -> ""
+

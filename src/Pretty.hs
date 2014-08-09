@@ -1,51 +1,83 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Pretty where
 
-import Prelude hiding (head)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 
 import Cheapskate (markdown, def)
 import Cheapskate.Html
-import Text.Highlighting.Kate.Format.HTML
+import Text.Highlighting.Kate (defaultFormatOpts, highlightAs)
+import Text.Highlighting.Kate.Types 
 import Text.Blaze
-import Text.Blaze.Html5 hiding (map, mark)
-import Text.Blaze.Html5.Attributes
+import qualified Text.Blaze.Html5 as H
+import qualified Text.Blaze.Html5.Attributes as A
 import Text.Blaze.Html.Renderer.Text (renderHtml)
+
+import Data.List (intersperse)
+import Data.Monoid (mconcat)
 
 import Types
 
-mark :: [Chunk] -> T.Text
-mark chunks = TL.toStrict $ renderHtml $ preface $ preEscapedToHtml $ map chunkToHtml chunks
+mark :: String -> [Chunk] -> T.Text
+--mark = (TL.toStrict $ renderHtml $ preface $ preEscapedToHtml $ map chunkToHtml)
+mark lang chunks = TL.toStrict $ renderHtml $ preface $ H.preEscapedToHtml $ map (chunkToHtml lang) chunks
 
-preface rest = docTypeHtml $ do 
-    head $ do
+preface rest = H.docTypeHtml $ do 
+    H.head $ do
 --      title "Introduction page."
-        link ! rel "stylesheet" ! type_ "text/css" ! href "default.css"
-    body $ do rest
+        H.link ! A.rel "stylesheet" ! A.type_ "text/css" ! A.href "default.css"
+    H.body $ do rest
 
-chunkToHtml :: Chunk -> Html
-chunkToHtml chunk =
+chunkToHtml :: String -> Chunk -> H.Html
+chunkToHtml lang chunk =
     case chunk of
     Prose txt -> toMarkup $ markdown def txt
     Def _ name parts -> 
         let 
             header = headerToHtml name
-            htmlParts = preEscapedToHtml $ map partToHtml parts
-        in pre $ code $ (header >> htmlParts)
+            htmlParts = H.preEscapedToHtml $ map (partToHtml lang) parts
+        in H.pre $ H.code $ (header >> htmlParts)
 
-partToHtml :: Part -> Html
-partToHtml part =
+partToHtml :: String -> Part -> H.Html
+partToHtml lang part =
     case part of
-    Code txt -> toHtml txt
-    Ref txt -> preEscapedToHtml  ("<< " `T.append` link `T.append` " >>\n")
+    Code txt -> mconcat $ map (sourceLineToHtml defaultFormatOpts) 
+                        $ highlightAs lang (T.unpack txt)
+    Ref txt -> H.preEscapedToHtml  ("<< " `T.append` link `T.append` " >>\n")
         where
             link = "<a href=\"#" `T.append` slim `T.append` "\">" `T.append` slim `T.append` "</a>"
             slim = T.strip txt
 
-headerToHtml :: T.Text -> Html
+headerToHtml :: T.Text -> H.Html
 headerToHtml name =  
-    preEscapedToHtml $ "<< " `T.append` link `T.append` " >>=\n"
+    H.preEscapedToHtml $ "<< " `T.append` link `T.append` " >>=\n"
     where
         link = "<a id=\"" `T.append` slim `T.append` "\" href=\"#" `T.append` slim `T.append` "\">" `T.append` slim `T.append` "</a>"
         slim = T.strip name
+
+sourceLineToHtml :: FormatOptions -> SourceLine -> H.Html
+sourceLineToHtml opts line = mconcat $ (map (tokenToHtml opts) line) ++ [(H.toHtml ("\n" :: String))]
+
+tokenToHtml :: FormatOptions -> Token -> H.Html
+tokenToHtml _ (NormalTok, txt)  = H.toHtml txt
+tokenToHtml opts (toktype, txt) =
+  if titleAttributes opts
+     then sp ! A.title (toValue $ show toktype)
+     else sp
+   where sp = H.span ! A.class_ (toValue $ short toktype) $ H.toHtml txt
+
+short :: TokenType -> T.Text
+short KeywordTok        = "kw"
+short DataTypeTok       = "dt"
+short DecValTok         = "dv"
+short BaseNTok          = "bn"
+short FloatTok          = "fl"
+short CharTok           = "ch"
+short StringTok         = "st"
+short CommentTok        = "co"
+short OtherTok          = "ot"
+short AlertTok          = "al"
+short FunctionTok       = "fu"
+short RegionMarkerTok   = "re"
+short ErrorTok          = "er"
+short NormalTok         = ""

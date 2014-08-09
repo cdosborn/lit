@@ -17,7 +17,8 @@ import Types
 buildAll codeDir htmlDir files =
     let htmlOutputPaths = map (\f -> htmlDir ++ (fileNameFromPath f) ++ ".html") files 
         codeOutputPaths = map (\f -> codeDir ++ (fileNameFromPath f)) files 
-        htmlPipeline = (\out enc -> (writeFile out) $ Pretty.mark enc)
+        --htmlPipeline = (\out enc -> putStrLn (show enc))
+        htmlPipeline = (\out enc -> (writeFile out) $ Pretty.mark (getLang out) enc)
         codePipeline = (\out enc -> (writeFile out) . expand $ merge enc)
     in do
         streams <- mapM readFile files 
@@ -28,7 +29,7 @@ buildAll codeDir htmlDir files =
 buildHtml htmlDir files =
     let htmlOutputPaths = map (\f -> htmlDir ++ (fileNameFromPath f) ++ ".html") files 
         streams = mapM readFile files
-        pipeline = (\out f -> (writeFile out) . Pretty.mark $ encode f)
+        pipeline = (\out f -> (writeFile out) . (Pretty.mark (getLang out)) $ encode f)
     in (zipWithM pipeline htmlOutputPaths =<< streams) >> return ()
 
 buildCode codeDir files =

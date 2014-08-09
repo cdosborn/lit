@@ -11,93 +11,93 @@
 << <a href="#main">main</a> >>
 </code></pre><p>We need to import some code for working on the command line</p>
 <pre><code><< <a id="imports" href="#imports">imports</a> >>=
-import System.Console.GetOpt
-import System.Environment
-import System.IO
-import System.Exit
-import Processing
+<span class="kw">import </span><span class="dt">System.Console.GetOpt</span>
+<span class="kw">import </span><span class="dt">System.Environment</span>
+<span class="kw">import </span><span class="dt">System.IO</span>
+<span class="kw">import </span><span class="dt">System.Exit</span>
+<span class="kw">import </span><span class="dt">Processing</span>
 </code></pre>
 <p>Now we define the data behind some command line options</p>
 <pre><code><< <a id="command options" href="#command options">command options</a> >>=
-data Options = Options  { optCodeDir  :: String 
-                        , optHtmlDir  :: String
-                        , optCodeOnly :: Bool
-                        , optHtmlOnly :: Bool
+<span class="kw">data</span> <span class="dt">Options</span> <span class="fu">=</span> <span class="dt">Options</span>  {<span class="ot"> optCodeDir  ::</span> <span class="dt">String</span> 
+                        ,<span class="ot"> optHtmlDir  ::</span> <span class="dt">String</span>
+                        ,<span class="ot"> optCodeOnly ::</span> <span class="dt">Bool</span>
+                        ,<span class="ot"> optHtmlOnly ::</span> <span class="dt">Bool</span>
                         }
 
-startOptions :: Options
-startOptions = Options  { optCodeDir  = &quot;./&quot;
-                        , optHtmlDir  = &quot;./&quot;
-                        , optCodeOnly = False
-                        , optHtmlOnly = False
+<span class="ot">startOptions ::</span> <span class="dt">Options</span>
+startOptions <span class="fu">=</span> <span class="dt">Options</span>  { optCodeDir  <span class="fu">=</span> <span class="st">&quot;./&quot;</span>
+                        , optHtmlDir  <span class="fu">=</span> <span class="st">&quot;./&quot;</span>
+                        , optCodeOnly <span class="fu">=</span> <span class="dt">False</span>
+                        , optHtmlOnly <span class="fu">=</span> <span class="dt">False</span>
                         }
 </code></pre><p>Now we define the control flow for programs</p>
 <pre><code><< <a id="command redirects" href="#command redirects">command redirects</a> >>=
-options :: [ OptDescr (Options -&gt; IO Options) ]
-options =
-    [ Option &quot;d&quot; [&quot;html-only&quot;]
-        (NoArg (\opt -&gt; return opt { optHtmlOnly = True }))
-        &quot;Generate html docs&quot;
+<span class="ot">options ::</span> [ <span class="dt">OptDescr</span> (<span class="dt">Options</span> <span class="ot">-&gt;</span> <span class="dt">IO</span> <span class="dt">Options</span>) ]
+options <span class="fu">=</span>
+    [ <span class="dt">Option</span> <span class="st">&quot;d&quot;</span> [<span class="st">&quot;html-only&quot;</span>]
+        (<span class="dt">NoArg</span> (\opt <span class="ot">-&gt;</span> return opt { optHtmlOnly <span class="fu">=</span> <span class="dt">True</span> }))
+        <span class="st">&quot;Generate html docs&quot;</span>
       
-     , Option &quot;&quot; [&quot;html-dir&quot;]
-        (ReqArg
-            (\arg opt -&gt; return opt { optCodeDir = arg })
-            &quot;DIR&quot;)
-        &quot;Directory for generated html&quot;
+     , <span class="dt">Option</span> <span class="st">&quot;&quot;</span> [<span class="st">&quot;html-dir&quot;</span>]
+        (<span class="dt">ReqArg</span>
+            (\arg opt <span class="ot">-&gt;</span> return opt { optCodeDir <span class="fu">=</span> arg })
+            <span class="st">&quot;DIR&quot;</span>)
+        <span class="st">&quot;Directory for generated html&quot;</span>
 
-    , Option &quot;c&quot; [&quot;code-only&quot;]
-        (NoArg (\opt -&gt; return opt { optCodeOnly = True }))
-        &quot;Generate code by file extension&quot;
+    , <span class="dt">Option</span> <span class="st">&quot;c&quot;</span> [<span class="st">&quot;code-only&quot;</span>]
+        (<span class="dt">NoArg</span> (\opt <span class="ot">-&gt;</span> return opt { optCodeOnly <span class="fu">=</span> <span class="dt">True</span> }))
+        <span class="st">&quot;Generate code by file extension&quot;</span>
 
-     , Option &quot;&quot; [&quot;code-dir&quot;]
-        (ReqArg
-            (\arg opt -&gt; return opt { optCodeDir = arg })
-            &quot;DIR&quot;)
-        &quot;Directory for generated code&quot;
+     , <span class="dt">Option</span> <span class="st">&quot;&quot;</span> [<span class="st">&quot;code-dir&quot;</span>]
+        (<span class="dt">ReqArg</span>
+            (\arg opt <span class="ot">-&gt;</span> return opt { optCodeDir <span class="fu">=</span> arg })
+            <span class="st">&quot;DIR&quot;</span>)
+        <span class="st">&quot;Directory for generated code&quot;</span>
  
-    , Option &quot;v&quot; [&quot;version&quot;]
-        (NoArg
-            (\_ -&gt; do
-                hPutStrLn stderr &quot;Version 0.01&quot;
-                exitWith ExitSuccess))
-        &quot;Print version&quot;
+    , <span class="dt">Option</span> <span class="st">&quot;v&quot;</span> [<span class="st">&quot;version&quot;</span>]
+        (<span class="dt">NoArg</span>
+            (\_ <span class="ot">-&gt;</span> <span class="kw">do</span>
+                hPutStrLn stderr <span class="st">&quot;Version 0.01&quot;</span>
+                exitWith <span class="dt">ExitSuccess</span>))
+        <span class="st">&quot;Print version&quot;</span>
  
-    , Option &quot;h&quot; [&quot;help&quot;]
-        (NoArg
-            (\_ -&gt; do
-                prg &lt;- getProgName
+    , <span class="dt">Option</span> <span class="st">&quot;h&quot;</span> [<span class="st">&quot;help&quot;</span>]
+        (<span class="dt">NoArg</span>
+            (\_ <span class="ot">-&gt;</span> <span class="kw">do</span>
+                prg <span class="ot">&lt;-</span> getProgName
                 hPutStrLn stderr (usageInfo header options)
-                exitWith ExitSuccess))
-        &quot;Display help&quot;
+                exitWith <span class="dt">ExitSuccess</span>))
+        <span class="st">&quot;Display help&quot;</span>
     ]
 
-header = &quot;Usage: lit [OPTION...] FILES...&quot;
+header <span class="fu">=</span> <span class="st">&quot;Usage: lit [OPTION...] FILES...&quot;</span>
 </code></pre><p>Here is the starting point of the program</p>
 <pre><code><< <a id="main" href="#main">main</a> >>=
-main = do
+main <span class="fu">=</span> <span class="kw">do</span>
 </code></pre><p>Here we grab some arguments as a monad</p>
 <pre><code><< <a id="main" href="#main">main</a> >>=
-    args &lt;- getArgs
+    args <span class="ot">&lt;-</span> getArgs
  
-    -- Parse options, getting a list of option actions
-    let (actions, files, errors) = getOpt RequireOrder options args
+    <span class="co">-- Parse options, getting a list of option actions</span>
+    <span class="kw">let</span> (actions, files, errors) <span class="fu">=</span> getOpt <span class="dt">RequireOrder</span> options args
     
-    -- Here we thread startOptions through all supplied option actions
-    opts &lt;- foldl (&gt;&gt;=) (return startOptions) actions
+    <span class="co">-- Here we thread startOptions through all supplied option actions</span>
+    opts <span class="ot">&lt;-</span> foldl (<span class="fu">&gt;&gt;=</span>) (return startOptions) actions
  
-    let Options { optCodeDir  = codeDir
-                , optHtmlDir  = htmlDir
-                , optCodeOnly = onlyCode
-                , optHtmlOnly = onlyHtml
-                } = opts
+    <span class="kw">let</span> <span class="dt">Options</span> { optCodeDir  <span class="fu">=</span> codeDir
+                , optHtmlDir  <span class="fu">=</span> htmlDir
+                , optCodeOnly <span class="fu">=</span> onlyCode
+                , optHtmlOnly <span class="fu">=</span> onlyHtml
+                } <span class="fu">=</span> opts
 </code></pre><p>Lastly we either generate code or html or both</p>
 <pre><code><< <a id="main" href="#main">main</a> >>=
-    if (errors /= [] || (onlyHtml &amp;&amp; onlyCode))
-    then hPutStrLn stderr ((concat errors) ++ header)
-    else if onlyCode         
-    then hPutStrLn stderr &quot;... not done&quot;
-    else if onlyHtml
-    then hPutStrLn stderr &quot;... not done&quot;
-    else Processing.buildAll codeDir htmlDir files
---       Prose.write pathToSource pathToOutput files
+    <span class="kw">if</span> (errors <span class="fu">/=</span> [] <span class="fu">||</span> (onlyHtml <span class="fu">&amp;&amp;</span> onlyCode))
+    <span class="kw">then</span> hPutStrLn stderr ((concat errors) <span class="fu">++</span> header)
+    <span class="kw">else</span> <span class="kw">if</span> onlyCode         
+    <span class="kw">then</span> hPutStrLn stderr <span class="st">&quot;... not done&quot;</span>
+    <span class="kw">else</span> <span class="kw">if</span> onlyHtml
+    <span class="kw">then</span> hPutStrLn stderr <span class="st">&quot;... not done&quot;</span>
+    <span class="kw">else</span> Processing.buildAll codeDir htmlDir files
+<span class="co">--       Prose.write pathToSource pathToOutput files</span>
 </code></pre></body></html>

@@ -385,3 +385,51 @@ pre code, pre tt {
   background-color: transparent;
   border: none;
 }
+
+/* Pygments
+code span.kw { color: #007020; font-weight: bold; }
+code span.dt { color: #902000; }
+code span.dv { color: #40a070; }
+code span.bn { color: #40a070; }
+code span.fl { color: #40a070; }
+code span.ch { color: #4070a0; }
+code span.st { color: #4070a0; }
+code span.co { color: #60a0b0; font-style: italic; }
+code span.ot { color: #007020; }
+code span.al { color: red; font-weight: bold; }
+code span.fu { color: #06287e; }
+code span.re { }
+code span.er { color: red; font-weight: bold; }
+*/
+
+/* Espresso
+pre, code { background-color: #2A211C; color: #BDAE9D; }
+code span.kw { color: #43A8ED; font-weight: bold; }
+code span.dt { text-decoration: underline; }
+code span.dv { color: #44AA43; }
+code span.bn { color: #44AA43; }
+code span.fl { color: #44AA43; }
+code span.ch { color: #049B0A; }
+code span.st { color: #049B0A; }
+code span.co { color: #0066FF; font-style: italic; }
+code span.ot { }
+code span.al { color: yellow; font-weight: bold; }
+code span.fu { color: #FF9358; font-weight: bold; }
+code span.re { }
+code span.er { color: yellow; font-weight: bold; }
+/*
+
+/* Kate */
+code span.kw { font-weight: bold; }
+code span.dt { color: #800000; }
+code span.dv { color: #0000FF; }
+code span.bn { color: #0000FF; }
+code span.fl { color: #800080; }
+code span.ch { color: #FF00FF; }
+code span.st { color: #DD0000; }
+code span.co { color: #808080; font-style: italic; }
+code span.ot { }
+code span.al { color: green; font-weight: bold; }
+code span.fu { color: #000080; }
+code span.re { }
+code span.er { color: red; font-weight: bold; }
