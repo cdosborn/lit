@@ -1,0 +1,11 @@
+Lit.hs
+------
+    filenames s.a ../blah/blah dont work (because prepended ..)
+
+Processing
+----------
+    simplify could be tail recursive
+
+Pretty
+------
+    add in custom tags for lit macros

@@ -14,32 +14,59 @@ import Parse
 import Pretty
 import Types
 
-buildAll codeDir htmlDir files =
-    let htmlOutputPaths = map (\f -> htmlDir ++ (fileNameFromPath f) ++ ".html") files 
-        codeOutputPaths = map (\f -> codeDir ++ (fileNameFromPath f)) files 
+--buildAll codeDir htmlDir files =
+--    let htmlOutputPaths = map (\f -> htmlDir ++ (fileNameFromPath f) ++ ".html") files 
+--        codeOutputPaths = map (\f -> codeDir ++ (fileNameFromPath f)) files 
+--        htmlPipeline = (\out enc -> putStrLn (show enc))
+--        --htmlPipeline = (\out enc -> (writeFile out) $ Pretty.mark (getLang out) $ simplify enc)
+--        codePipeline = (\out enc -> (writeFile out) . expand $ merge enc)
+--    in do
+--        streams <- mapM readFile files 
+--        encoded <- mapM (\str -> return $ encode str) streams 
+--        (zipWithM codePipeline codeOutputPaths encoded)
+--        (zipWithM htmlPipeline htmlOutputPaths encoded) >> return ()
+
+buildAll mCss codeDir htmlDir file =
+    let fileName = fileNameFromPath file
+        htmlOutputPath = htmlDir ++ fileName ++ ".html"
+        codeOutputPath = codeDir ++ fileName
         --htmlPipeline = (\out enc -> putStrLn (show enc))
-        htmlPipeline = (\out enc -> (writeFile out) $ Pretty.mark (getLang out) enc)
+        htmlPipeline = (\out enc -> (writeFile out) $ Pretty.mark (getLang out) mCss $ simplify enc)
         codePipeline = (\out enc -> (writeFile out) . expand $ merge enc)
     in do
-        streams <- mapM readFile files 
-        encoded <- mapM (\str -> return $ encode str) streams 
-        (zipWithM codePipeline codeOutputPaths encoded)
-        (zipWithM htmlPipeline htmlOutputPaths encoded) >> return ()
+        stream <- readFile file
+        encoded <- return $ encode stream 
+        codePipeline codeOutputPath encoded
+        htmlPipeline htmlOutputPath encoded >> return ()
 
-buildHtml htmlDir files =
-    let htmlOutputPaths = map (\f -> htmlDir ++ (fileNameFromPath f) ++ ".html") files 
-        streams = mapM readFile files
-        pipeline = (\out f -> (writeFile out) . (Pretty.mark (getLang out)) $ encode f)
-    in (zipWithM pipeline htmlOutputPaths =<< streams) >> return ()
+buildHtml mCss htmlDir file =
+    let htmlOutputPath = htmlDir ++ (fileNameFromPath file) ++ ".html"
+        stream = readFile file
+        --pipeline = (\out f -> putStrLn (show $ simplify $ encode f))
+        pipeline = (\out f -> (writeFile out) $ Pretty.mark (getLang out) mCss $ simplify $ encode f)
+    in stream >>= pipeline htmlOutputPath >> return ()
 
-buildCode codeDir files =
-    let codeOutputPaths = map (\f -> codeDir ++ (fileNameFromPath f)) files 
-        streams = mapM readFile files
+
+--buildHtml htmlDir files =
+--    let htmlOutputPaths = map (\f -> htmlDir ++ (fileNameFromPath f) ++ ".html") files 
+--        streams = mapM readFile files
+--        --pipeline = (\out f -> putStrLn (show $ simplify $ encode f))
+--        pipeline = (\out f -> (writeFile out) $ Pretty.mark (getLang out) $ simplify $ encode f)
+--    in (zipWithM pipeline htmlOutputPaths =<< streams) >> return ()
+
+buildCode codeDir file =
+    let codeOutputPath = codeDir ++ (fileNameFromPath file)
+        stream = readFile file
         pipeline = (\out f -> (writeFile out) . expand . merge $ encode f)
-    in (zipWithM pipeline codeOutputPaths =<< streams) >> return ()
+    in stream >>= pipeline codeOutputPath >> return ()
 
+--buildCode codeDir files =
+--    let codeOutputPaths = map (\f -> codeDir ++ (fileNameFromPath f)) files 
+--        streams = mapM readFile files
+--        pipeline = (\out f -> (writeFile out) . expand . merge $ encode f)
+--    in (zipWithM pipeline codeOutputPaths =<< streams) >> return ()
 
-
+-- merge together definitions with the same name
 merge :: [Chunk] -> [Chunk]
 merge chunks = mergeAux [] (filter isDef chunks)
 mergeAux ans [] = ans
@@ -51,7 +78,29 @@ mergeAux ans (next:rest) =
     in 
         mergeAux (merged:ans) rem
 
--- always one or more chunk
+-- many consecutive Proses are reduced to a single Prose
+simplify :: [Chunk] -> [Chunk]
+simplify [] = []
+simplify lst =
+    let (defs, ps) = span isDef lst
+        (ps', rest) = break isDef ps
+    in case ps' of
+        [] -> defs ++ rest
+        _ -> defs ++ [mergeProse ps'] ++ (simplify rest)
+
+mergeProse :: [Chunk] -> Chunk
+mergeProse lst = 
+    Prose $ T.concat $ map getProseText lst
+
+consecutive :: [Chunk] -> ([Chunk],[Chunk])
+consecutive [] = ([],[])
+consecutive lst@(fst:rest) =
+    case fst of
+    Prose _ -> break isDef lst
+    Def _ _ _ -> span isDef lst
+
+-- assumes always one or more chunk
+combineChunks :: [Chunk] -> Chunk
 combineChunks (a:[]) = a
 combineChunks l@(c:cs) = Def line name parts 
     where
@@ -63,6 +112,11 @@ isDef chunk =
     case chunk of
     Def _ _ _ -> True
     Prose _ -> False
+
+getProseText prose =
+    case prose of
+    Prose txt -> txt
+    _ -> error "cannot retrieve txt, not a prose"
 
 getName chunk =
     case chunk of

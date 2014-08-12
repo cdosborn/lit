@@ -14,19 +14,21 @@ import qualified Text.Blaze.Html5.Attributes as A
 import Text.Blaze.Html.Renderer.Text (renderHtml)
 
 import Data.List (intersperse)
+import Data.Maybe (fromMaybe)
 import Data.Monoid (mconcat)
 
 import Types
 
-mark :: String -> [Chunk] -> T.Text
---mark = (TL.toStrict $ renderHtml $ preface $ preEscapedToHtml $ map chunkToHtml)
-mark lang chunks = TL.toStrict $ renderHtml $ preface $ H.preEscapedToHtml $ map (chunkToHtml lang) chunks
+mark :: String -> Maybe String -> [Chunk] -> T.Text
+mark lang maybeCss chunks = TL.toStrict $ renderHtml $ preface maybeCss $ H.preEscapedToHtml $ map (chunkToHtml lang) chunks
 
-preface rest = H.docTypeHtml $ do 
+preface :: Maybe String -> H.Html -> H.Html
+preface mCss rest = H.docTypeHtml $ do 
+    let css = toValue $ fromMaybe "" mCss
     H.head $ do
---      title "Introduction page."
-        H.link ! A.rel "stylesheet" ! A.type_ "text/css" ! A.href "default.css"
+        H.link ! A.rel "stylesheet" ! A.type_ "text/css" ! A.href css
     H.body $ do rest
+            
 
 chunkToHtml :: String -> Chunk -> H.Html
 chunkToHtml lang chunk =

@@ -386,7 +386,23 @@ pre code, pre tt {
   border: none;
 }
 
-/* Pygments
+/* Lit
+code span.kw { font-weight: bold; }
+code span.dt { color: red; }
+code span.dv { color: green; }
+code span.bn { color: blue; }
+code span.fl { color: yellow; }
+code span.ch { color: orange; }
+code span.st { color: light-blue; }
+code span.co { color: font-style: italic; }
+code span.ot { color: purple; }
+code span.al { color: pink; font-weight: bold; }
+code span.fu { color: grey; }
+code span.re { color: light-red; }
+code span.er { color: #222; font-weight: bold; }
+ */
+
+/* Pygments */
 code span.kw { color: #007020; font-weight: bold; }
 code span.dt { color: #902000; }
 code span.dv { color: #40a070; }
@@ -400,7 +416,7 @@ code span.al { color: red; font-weight: bold; }
 code span.fu { color: #06287e; }
 code span.re { }
 code span.er { color: red; font-weight: bold; }
-*/
+
 
 /* Espresso
 pre, code { background-color: #2A211C; color: #BDAE9D; }
@@ -419,7 +435,7 @@ code span.re { }
 code span.er { color: yellow; font-weight: bold; }
 /*
 
-/* Kate */
+/* Kate
 code span.kw { font-weight: bold; }
 code span.dt { color: #800000; }
 code span.dv { color: #0000FF; }
@@ -433,3 +449,4 @@ code span.al { color: green; font-weight: bold; }
 code span.fu { color: #000080; }
 code span.re { }
 code span.er { color: red; font-weight: bold; }
+ */

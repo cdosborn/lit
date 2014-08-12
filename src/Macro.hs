@@ -9,6 +9,7 @@ import System.IO
  - TODO:
  - trim \n after a code chunk
  -
+ - NOTICE: This file is not actually contribute to the repo, see Parse.hs
  -}
 
 build outputDir files = 
