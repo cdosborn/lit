@@ -19,9 +19,8 @@ onDiff fun delay file = do
     modified <- errorHandler (getModificationTime file) 
     curTime <- getCurrentTime 
     let diff = (diffUTCTime curTime modified)
-    if diff < 1 
-    then fun file >> C.threadDelay delay
-    else return ()
+
+    if diff < 1 then fun file >> C.threadDelay delay else return ()
  
 
 -- a really conservative check to prevent file

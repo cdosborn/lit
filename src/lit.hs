@@ -97,6 +97,6 @@ main = do
     let build = if onlyHtml then Processing.buildHtml mCss htmlDir else Processing.buildCode codeDir
         build' = if not onlyHtml && not onlyCode then Processing.buildAll mCss codeDir htmlDir else build
         maybeWatch = if watching then Poll.watch else mapM_
-    if (errors /= [] || (onlyHtml && onlyCode))
-    then hPutStrLn stderr ((concat errors) ++ header)
-    else maybeWatch build' files  
+    if (errors /= [] || (onlyHtml && onlyCode)) 
+        then hPutStrLn stderr ((concat errors) ++ header) 
+        else maybeWatch build' files  

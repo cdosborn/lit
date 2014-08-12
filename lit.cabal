@@ -31,4 +31,6 @@ executable lit
                      cheapskate ==0.1.*, 
                      blaze-markup ==0.6.*, 
                      blaze-html,
-                     highlighting-kate
+                     highlighting-kate,
+                     time ==1.4.*,
+                     directory ==1.2.*
