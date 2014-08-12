@@ -14,18 +14,6 @@ import Parse
 import Pretty
 import Types
 
---buildAll codeDir docsDir files =
---    let htmlOutputPaths = map (\f -> docsDir ++ (fileNameFromPath f) ++ ".html") files 
---        codeOutputPaths = map (\f -> codeDir ++ (fileNameFromPath f)) files 
---        htmlPipeline = (\out enc -> putStrLn (show enc))
---        --htmlPipeline = (\out enc -> (writeFile out) $ Pretty.pretty (getLang out) $ simplify enc)
---        codePipeline = (\out enc -> (writeFile out) . expand $ merge enc)
---    in do
---        streams <- mapM readFile files 
---        encoded <- mapM (\str -> return $ encode str) streams 
---        (zipWithM codePipeline codeOutputPaths encoded)
---        (zipWithM htmlPipeline htmlOutputPaths encoded) >> return ()
-
 build mCss pipes file =
     let lang = getLang file
         fileName = fileNameFromPath file
@@ -34,10 +22,14 @@ build mCss pipes file =
         encoded <- return $ encode stream 
         mapM_ (\f -> f mCss lang fileName encoded) pipes >> return ()
 
--- are parens necessary around write
-htmlPipeline = (\dir css lang path enc -> writeFile (dir ++ path ++ ".html") $ pretty lang css $ simplify enc)
-mdPipeline = (\dir css lang path enc -> writeFile (dir ++ path ++ ".md") $ (mark lang) enc)
-codePipeline = (\dir css lang path enc -> writeFile (dir ++ path) $ expand $ merge enc)
+htmlPipeline = (\dir css lang path enc -> writeFile ((ensureTrailingSlash dir) ++ path ++ ".html") $ pretty lang css $ simplify enc)
+mdPipeline = (\dir css lang path enc -> writeFile ((ensureTrailingSlash dir) ++ path ++ ".md") $ (mark lang) enc)
+codePipeline = (\dir css lang path enc -> writeFile ((ensureTrailingSlash dir) ++ path) $ expand $ merge enc)
+
+ensureTrailingSlash dir = 
+    if last dir == '/'
+    then dir
+    else dir ++ "/"
 
 -- merge together definitions with the same name
 merge :: [Chunk] -> [Chunk]

@@ -2,6 +2,7 @@ module Main where
 
 import System.Console.GetOpt
 import System.Environment
+import System.Directory (doesDirectoryExist)
 import System.IO
 import System.Exit
 import Control.Applicative
@@ -81,7 +82,7 @@ options =
        "Display help"
     ]
 
-header = "Usage: lit [OPTION...] FILES..."
+header = "Usage: lit OPTIONS... FILES..."
 
 main = do
     args <- getArgs
@@ -101,13 +102,18 @@ main = do
                 , optWatch    = watching
                 } = opts 
 
+    codeDirCheck <- doesDirectoryExist codeDir
+    docsDirCheck <- doesDirectoryExist docsDir
+
     let htmlPipe = if html     then [Processing.htmlPipeline docsDir] else []
         mdPipe   = if markdown then [Processing.mdPipeline   docsDir] else []
         codePipe = if code     then [Processing.codePipeline codeDir] else []
         pipes = htmlPipe ++ mdPipe ++ codePipe 
         maybeWatch = if watching then Poll.watch else mapM_
+        errors'  = if codeDirCheck then [] else ["Directory: " ++ codeDir ++ " does not exist\n"]
+        errors'' = if docsDirCheck then [] else ["Directory: " ++ docsDir ++ " does not exist\n"]
+        allErr = errors ++ errors' ++ errors''
 
-    if errors /= [] || (not html && not code && not markdown) 
-        then hPutStrLn stderr ((concat errors) ++ header) 
+    if allErr /= [] || (not html && not code && not markdown)
+        then hPutStrLn stderr ((concat allErr) ++ header) 
         else (maybeWatch (Processing.build mCss pipes)) files
- 

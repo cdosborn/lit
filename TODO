@@ -1,11 +1,10 @@
 Lit.hs
 ------
-    filenames s.a ../blah/blah dont work (because prepended ..)
 
 Processing
 ----------
     simplify could be tail recursive
-    "" should be called proseUnify ..
+    ^ should be called proseUnify ..
 
 Pretty
 ------
