@@ -5,6 +5,7 @@ Lit.hs
 Processing
 ----------
     simplify could be tail recursive
+    "" should be called proseUnify ..
 
 Pretty
 ------

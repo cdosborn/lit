@@ -10,69 +10,75 @@ import Processing
 import Poll
 
 data Options = Options  { optCodeDir  :: String 
-                        , optHtmlDir  :: String
-                        , optCodeOnly :: Bool
-                        , optHtmlOnly :: Bool
+                        , optDocsDir  :: String
                         , optCss      :: Maybe String
+                        , optCode     :: Bool
+                        , optHtml     :: Bool
+                        , optMarkdown :: Bool
                         , optWatch    :: Bool
                         }
 
 startOptions :: Options
 startOptions = Options  { optCodeDir  = "./"
-                        , optHtmlDir  = "./"
+                        , optDocsDir  = "./"
                         , optCss      = Nothing
-                        , optCodeOnly = False
-                        , optHtmlOnly = False
+                        , optCode     = False
+                        , optHtml     = False
+                        , optMarkdown = False
                         , optWatch    = False
                         }
 
 options :: [ OptDescr (Options -> IO Options) ]
-options =
-    [ Option "d" ["html-only"]
-        (NoArg (\opt -> return opt { optHtmlOnly = True }))
-        "Generate html docs"
-      
-     , Option "" ["html-dir"]
-        (ReqArg
-            (\arg opt -> return opt { optHtmlDir = arg })
-            "DIR")
-        "Directory for generated html"
+options = 
+    [ Option  "h" ["html"]
+       (NoArg (\opt -> return opt { optHtml = True }))
+       "Generate html"
 
-    , Option "c" ["code-only"]
-        (NoArg (\opt -> return opt { optCodeOnly = True }))
-        "Generate code by file extension"
+    , Option "m" ["markdown"]
+       (NoArg (\opt -> return opt { optMarkdown = True }))
+       "Generate markdown"
 
-     , Option "" ["code-dir"]
-        (ReqArg
-            (\arg opt -> return opt { optCodeDir = arg })
-            "DIR")
-        "Directory for generated code"
+    , Option "c" ["code"]
+       (NoArg (\opt -> return opt { optCode = True }))
+       "Generate code by file extension"
 
-     , Option "" ["css"]
-        (ReqArg
-            (\arg opt -> return opt { optCss = Just arg })
-            "FILE")
-        "Specify a css file for html generation"
+    , Option "" ["css"]
+       (ReqArg
+           (\arg opt -> return opt { optCss = Just arg })
+           "FILE")
+       "Specify a css file for html generation"
 
-     , Option "w" ["watch"]
-        (NoArg
-            (\opt -> return opt { optWatch = True}))
-        "Watch for file changes, automatically run lit"
+    , Option "" ["docs-dir"]
+       (ReqArg
+           (\arg opt -> return opt { optDocsDir = arg })
+           "DIR")
+       "Directory for generated docs"
+
+    , Option "" ["code-dir"]
+       (ReqArg
+           (\arg opt -> return opt { optCodeDir = arg })
+           "DIR")
+       "Directory for generated code"
+
+    , Option "w" ["watch"]
+       (NoArg
+           (\opt -> return opt { optWatch = True}))
+       "Watch for file changes, automatically run lit"
  
     , Option "v" ["version"]
-        (NoArg
-            (\_ -> do
-                hPutStrLn stderr "Version 0.01"
-                exitWith ExitSuccess))
-        "Print version"
+       (NoArg
+           (\_ -> do
+               hPutStrLn stderr "Version 0.01"
+               exitWith ExitSuccess))
+       "Print version"
  
-    , Option "h" ["help"]
-        (NoArg
-            (\_ -> do
-                prg <- getProgName
-                hPutStrLn stderr (usageInfo header options)
-                exitWith ExitSuccess))
-        "Display help"
+    , Option "" ["help"]
+       (NoArg
+           (\_ -> do
+               prg <- getProgName
+               hPutStrLn stderr (usageInfo header options)
+               exitWith ExitSuccess))
+       "Display help"
     ]
 
 header = "Usage: lit [OPTION...] FILES..."
@@ -87,16 +93,21 @@ main = do
     opts <- foldl (>>=) (return startOptions) actions
  
     let Options { optCodeDir  = codeDir
-                , optHtmlDir  = htmlDir
-                , optCodeOnly = onlyCode
-                , optHtmlOnly = onlyHtml
+                , optDocsDir  = docsDir
+                , optMarkdown = markdown
+                , optCode     = code
+                , optHtml     = html
                 , optCss      = mCss
                 , optWatch    = watching
                 } = opts 
 
-    let build = if onlyHtml then Processing.buildHtml mCss htmlDir else Processing.buildCode codeDir
-        build' = if not onlyHtml && not onlyCode then Processing.buildAll mCss codeDir htmlDir else build
+    let htmlPipe = if html     then [Processing.htmlPipeline docsDir] else []
+        mdPipe   = if markdown then [Processing.mdPipeline   docsDir] else []
+        codePipe = if code     then [Processing.codePipeline codeDir] else []
+        pipes = htmlPipe ++ mdPipe ++ codePipe 
         maybeWatch = if watching then Poll.watch else mapM_
-    if (errors /= [] || (onlyHtml && onlyCode)) 
+
+    if errors /= [] || (not html && not code && not markdown) 
         then hPutStrLn stderr ((concat errors) ++ header) 
-        else maybeWatch build' files  
+        else (maybeWatch (Processing.build mCss pipes)) files
+ 

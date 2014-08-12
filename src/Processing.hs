@@ -14,11 +14,11 @@ import Parse
 import Pretty
 import Types
 
---buildAll codeDir htmlDir files =
---    let htmlOutputPaths = map (\f -> htmlDir ++ (fileNameFromPath f) ++ ".html") files 
+--buildAll codeDir docsDir files =
+--    let htmlOutputPaths = map (\f -> docsDir ++ (fileNameFromPath f) ++ ".html") files 
 --        codeOutputPaths = map (\f -> codeDir ++ (fileNameFromPath f)) files 
 --        htmlPipeline = (\out enc -> putStrLn (show enc))
---        --htmlPipeline = (\out enc -> (writeFile out) $ Pretty.mark (getLang out) $ simplify enc)
+--        --htmlPipeline = (\out enc -> (writeFile out) $ Pretty.pretty (getLang out) $ simplify enc)
 --        codePipeline = (\out enc -> (writeFile out) . expand $ merge enc)
 --    in do
 --        streams <- mapM readFile files 
@@ -26,45 +26,18 @@ import Types
 --        (zipWithM codePipeline codeOutputPaths encoded)
 --        (zipWithM htmlPipeline htmlOutputPaths encoded) >> return ()
 
-buildAll mCss codeDir htmlDir file =
-    let fileName = fileNameFromPath file
-        htmlOutputPath = htmlDir ++ fileName ++ ".html"
-        codeOutputPath = codeDir ++ fileName
-        --htmlPipeline = (\out enc -> putStrLn (show enc))
-        htmlPipeline = (\out enc -> (writeFile out) $ Pretty.mark (getLang out) mCss $ simplify enc)
-        codePipeline = (\out enc -> (writeFile out) . expand $ merge enc)
+build mCss pipes file =
+    let lang = getLang file
+        fileName = fileNameFromPath file
     in do
         stream <- readFile file
         encoded <- return $ encode stream 
-        codePipeline codeOutputPath encoded
-        htmlPipeline htmlOutputPath encoded >> return ()
+        mapM_ (\f -> f mCss lang fileName encoded) pipes >> return ()
 
-buildHtml mCss htmlDir file =
-    let htmlOutputPath = htmlDir ++ (fileNameFromPath file) ++ ".html"
-        stream = readFile file
-        --pipeline = (\out f -> putStrLn (show $ simplify $ encode f))
-        pipeline = (\out f -> (writeFile out) $ Pretty.mark (getLang out) mCss $ simplify $ encode f)
-    in stream >>= pipeline htmlOutputPath >> return ()
-
-
---buildHtml htmlDir files =
---    let htmlOutputPaths = map (\f -> htmlDir ++ (fileNameFromPath f) ++ ".html") files 
---        streams = mapM readFile files
---        --pipeline = (\out f -> putStrLn (show $ simplify $ encode f))
---        pipeline = (\out f -> (writeFile out) $ Pretty.mark (getLang out) $ simplify $ encode f)
---    in (zipWithM pipeline htmlOutputPaths =<< streams) >> return ()
-
-buildCode codeDir file =
-    let codeOutputPath = codeDir ++ (fileNameFromPath file)
-        stream = readFile file
-        pipeline = (\out f -> (writeFile out) . expand . merge $ encode f)
-    in stream >>= pipeline codeOutputPath >> return ()
-
---buildCode codeDir files =
---    let codeOutputPaths = map (\f -> codeDir ++ (fileNameFromPath f)) files 
---        streams = mapM readFile files
---        pipeline = (\out f -> (writeFile out) . expand . merge $ encode f)
---    in (zipWithM pipeline codeOutputPaths =<< streams) >> return ()
+-- are parens necessary around write
+htmlPipeline = (\dir css lang path enc -> writeFile (dir ++ path ++ ".html") $ pretty lang css $ simplify enc)
+mdPipeline = (\dir css lang path enc -> writeFile (dir ++ path ++ ".md") $ (mark lang) enc)
+codePipeline = (\dir css lang path enc -> writeFile (dir ++ path) $ expand $ merge enc)
 
 -- merge together definitions with the same name
 merge :: [Chunk] -> [Chunk]
