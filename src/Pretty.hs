@@ -32,10 +32,12 @@ chunkToMarkdown lang chunk =
     Def _ name parts -> 
         let 
             lang' = T.pack lang
-            header = headerToText name
+            header = headerName name
             mdParts = T.concat $ map (partToText lang) parts
         in 
-            "```" `T.append` lang' `T.append` "\n" `T.append` header `T.append` mdParts `T.append` "\n```\n"
+            "```" `T.append` lang'   `T.append` 
+            "\n"  `T.append` header  `T.append` 
+            "\n"  `T.append` mdParts `T.append` "\n```\n"
 
 
 preface :: Maybe String -> H.Html -> H.Html
@@ -79,10 +81,12 @@ headerToHtml :: T.Text -> H.Html
 headerToHtml name =  H.preEscapedToHtml $ headerToText name
 
 headerToText :: T.Text -> T.Text
-headerToText name =  "<< " `T.append` link `T.append` " >>=\n"
+headerToText name = "<< " `T.append` link `T.append` " >>=\n" 
     where
         link = "<a id=\"" `T.append` slim `T.append` "\" href=\"#" `T.append` slim `T.append` "\">" `T.append` slim `T.append` "</a>"
         slim = T.strip name
+
+headerName name = "<< " `T.append` (T.strip name) `T.append` " >>="
 
 sourceLineToHtml :: FormatOptions -> SourceLine -> H.Html
 sourceLineToHtml opts line = mconcat $ (map (tokenToHtml opts) line) ++ [(H.toHtml ("\n" :: String))]

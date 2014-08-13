@@ -15,8 +15,8 @@ import Pretty
 import Types
 
 build mCss pipes file =
-    let lang = getLang file
-        fileName = fileNameFromPath file
+    let fileName = fileNameFromPath file
+        lang = getLang fileName
     in do
         stream <- readFile file
         encoded <- return $ encode stream 

@@ -4,8 +4,8 @@
 as
 
 Here is a broad overview of the programs
-```
-<< <a id="*" href="#*">*</a> >>=
+```Haskell
+<< * >>=
 << <a href="#imports">imports</a> >>
 << <a href="#command options">command options</a> >>
 << <a href="#command redirects">command redirects</a> >>
@@ -14,8 +14,8 @@ Here is a broad overview of the programs
 ```
   
 We need to import some code for working on the command line
-```
-<< <a id="imports" href="#imports">imports</a> >>=
+```Haskell
+<< imports >>=
 import System.Console.GetOpt
 import System.Environment
 import System.IO
@@ -25,8 +25,8 @@ import Processing
 ```
     
 Now we define the data behind some command line options
-```
-<< <a id="command options" href="#command options">command options</a> >>=
+```Haskell
+<< command options >>=
 data Options = Options  { optCodeDir  :: String 
                         , optHtmlDir  :: String
                         , optCodeOnly :: Bool
@@ -42,8 +42,8 @@ startOptions = Options  { optCodeDir  = "./"
 
 ```
 Now we define the control flow for programs
-```
-<< <a id="command redirects" href="#command redirects">command redirects</a> >>=
+```Haskell
+<< command redirects >>=
 options :: [ OptDescr (Options -> IO Options) ]
 options =
     [ Option "d" ["html-only"]
@@ -86,14 +86,14 @@ header = "Usage: lit [OPTION...] FILES..."
 
 ```
 Here is the starting point of the program
-```
-<< <a id="main" href="#main">main</a> >>=
+```Haskell
+<< main >>=
 main = do
 
 ```
 Here we grab some arguments as a monad
-```
-<< <a id="main" href="#main">main</a> >>=
+```Haskell
+<< main >>=
     args <- getArgs
  
     -- Parse options, getting a list of option actions
@@ -110,8 +110,8 @@ Here we grab some arguments as a monad
 
 ```
 Lastly we either generate code or html or both
-```
-<< <a id="main" href="#main">main</a> >>=
+```Haskell
+<< main >>=
     if (errors /= [] || (onlyHtml && onlyCode))
     then hPutStrLn stderr ((concat errors) ++ header)
     else if onlyCode         
