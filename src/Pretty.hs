@@ -1,5 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Pretty where
+module Pretty 
+( pretty
+, mark 
+, getLang ) where
 
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL

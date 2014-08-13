@@ -1,4 +1,5 @@
-module Poll where
+module Poll 
+( watch ) where
 
 import System.Directory
 import Data.Time.Clock

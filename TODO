@@ -1,12 +1,18 @@
 Lit.hs
 ------
+    with command `lit -h`, error ought to raise
 
 Processing
 ----------
     simplify could be tail recursive
     ^ should be called proseUnify ..
+    lookfor HashMap alternative (requires unordered containers)
+    clean up pipeline funs
 
 Pretty
 ------
     add in custom tags for lit macros
     test Lang works
+
+lit.cabal
+--------

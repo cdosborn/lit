@@ -14,6 +14,18 @@ encode txt =
     Left err -> []
     Right result -> result
 
+textP :: Parsec T.Text () T.Text ->  T.Text -> T.Text
+textP p txt =
+    case (parse p "" txt) of 
+    Left err -> T.empty
+    Right result -> result
+
+chunkP :: Parsec T.Text () Chunk ->  T.Text -> Maybe Chunk
+chunkP p txt =
+    case (parse p "" txt) of 
+    Left err -> Nothing
+    Right result -> Just result
+
 entire :: Parser Program
 entire = manyTill chunk eof
 
@@ -22,9 +34,13 @@ chunk = (try def) <|> prose
 
 prose :: Parser Chunk
 prose = do 
-    txt <- packM =<< many (noneOf "\n\r")
-    nl <- eol >>= (\c -> return $ T.singleton c)
-    return $ Prose (txt `T.append` nl)
+    txts <- manyTill grabLine (try title)
+    return $ Prose $ T.concat txts
+
+durp :: Parser T.Text
+durp = do
+    (ind, name, no) <- title
+    return name
 
 def :: Parser Chunk
 def = do
@@ -70,8 +86,8 @@ title = do
     pos <- getPosition
     indent <- many ws
     name <- packM =<< between (string "<<") (string ">>=") (many notDelim)
-    eol
-    return $ (indent, name, sourceLine pos)
+    grabLine -- 
+    return $ (indent, T.strip name, sourceLine pos)
 
 notDelim = noneOf ">="
 ws :: Parser Char

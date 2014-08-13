@@ -1,12 +1,15 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Processing where
-import Prelude hiding (head, readFile, writeFile) -- also id and div
+module Processing 
+( build
+, htmlPipeline
+, mdPipeline
+, codePipeline 
+, simplify ) where
+
+import Prelude hiding (readFile, writeFile)
 import Data.Text.IO (writeFile, readFile)
 
-import Data.Function (fix)
 import Data.List (partition)
-import Control.Monad (zipWithM)
-import Data.Sequence (Seq, singleton)
 import qualified Data.HashMap.Strict as Map
 import qualified Data.Text as T
 
