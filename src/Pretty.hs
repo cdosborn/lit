@@ -40,7 +40,7 @@ chunkToMarkdown lang chunk =
         in 
             "```" `T.append` lang'   `T.append` 
             "\n"  `T.append` header  `T.append` 
-            "\n"  `T.append` mdParts `T.append` "\n```\n"
+            "\n"  `T.append` mdParts `T.append` "```\n"
 
 
 preface :: Maybe String -> H.Html -> H.Html

@@ -1,29 +1,8 @@
-## Lit - a *modern* literate tool 
-
- *A fancy quote seems appropriate here*
-
-Here is a broad overview of the programs
-```Haskell
-<< * >>=
-<< <a href="#imports">imports</a> >>
-<< <a href="#command options">command options</a> >>
-<< <a href="#command redirects">command redirects</a> >>
-<< <a href="#main">main</a> >>
-```
-  
-We need to import some code for working on the command line
-```Haskell
-<< imports >>=
 import System.Console.GetOpt
 import System.Environment
 import System.IO
 import System.Exit
 import Processing
-```
-    
-Now we define the data behind some command line options
-```Haskell
-<< command options >>=
 data Options = Options  { optCodeDir  :: String 
                         , optHtmlDir  :: String
                         , optCodeOnly :: Bool
@@ -36,10 +15,6 @@ startOptions = Options  { optCodeDir  = "./"
                         , optCodeOnly = False
                         , optHtmlOnly = False
                         }
-```
-Now we define the control flow for programs
-```Haskell
-<< command redirects >>=
 options :: [ OptDescr (Options -> IO Options) ]
 options =
     [ Option "d" ["html-only"]
@@ -79,15 +54,7 @@ options =
     ]
 
 header = "Usage: lit [OPTION...] FILES..."
-```
-Here is the starting point of the program
-```Haskell
-<< main >>=
 main = do
-```
-Here we grab some arguments as a monad
-```Haskell
-<< main >>=
     args <- getArgs
  
     -- Parse options, getting a list of option actions
@@ -101,10 +68,6 @@ Here we grab some arguments as a monad
                 , optCodeOnly = onlyCode
                 , optHtmlOnly = onlyHtml
                 } = opts
-```
-Lastly we either generate code or html or both
-```Haskell
-<< main >>=
     if (errors /= [] || (onlyHtml && onlyCode))
     then hPutStrLn stderr ((concat errors) ++ header)
     else if onlyCode         
@@ -113,4 +76,3 @@ Lastly we either generate code or html or both
     then hPutStrLn stderr "... not done"
     else Processing.buildAll codeDir htmlDir files
 --       Prose.write pathToSource pathToOutput files
-```

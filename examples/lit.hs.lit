@@ -1,7 +1,6 @@
 ## Lit - a *modern* literate tool 
 
  *A fancy quote seems appropriate here*
-as
 
 Here is a broad overview of the programs
         << * >>=
@@ -32,7 +31,6 @@ Now we define the data behind some command line options
                                 , optCodeOnly = False
                                 , optHtmlOnly = False
                                 }
-
 
 Now we define the control flow for programs
         << command redirects >>=

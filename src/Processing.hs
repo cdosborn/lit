@@ -25,7 +25,7 @@ build mCss pipes file =
         encoded <- return $ encode stream 
         mapM_ (\f -> f mCss lang fileName encoded) pipes >> return ()
 
-htmlPipeline = (\dir css lang path enc -> writeFile ((ensureTrailingSlash dir) ++ path ++ ".html") $ pretty lang css $ simplify enc)
+htmlPipeline = (\dir css lang path enc -> writeFile ((ensureTrailingSlash dir) ++ path ++ ".html") $ pretty lang css enc)
 mdPipeline = (\dir css lang path enc -> writeFile ((ensureTrailingSlash dir) ++ path ++ ".md") $ (mark lang) enc)
 codePipeline = (\dir css lang path enc -> writeFile ((ensureTrailingSlash dir) ++ path) $ expand $ merge enc)
 
@@ -108,7 +108,7 @@ expand chunks =
     let 
         -- map (name, parts)
         partMap = Map.fromList $ zip (map getName chunks) (map getParts chunks)
-        rootParts = Map.lookupDefault [] " * " partMap 
+        rootParts = Map.lookupDefault [] "*" partMap 
     in
         expandParts rootParts partMap
         
@@ -119,6 +119,6 @@ expandParts parts partMap =
             case part of
             Code txt -> txt
             Ref name -> expandParts refParts partMap
-                where refParts = Map.lookupDefault [] name partMap)
+                where refParts = Map.lookupDefault [] (T.strip name) partMap)
     in 
         T.concat (map toText parts)

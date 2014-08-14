@@ -1,21 +1,24 @@
 <!DOCTYPE HTML>
-<html><head><link rel="stylesheet" type="text/css" href=""></head><body><h2>Lit - a <em>modern</em> literate tool</h2>
-<p><em>A fancy quote seems appropriate here</em>
-as</p>
+<html><head><link rel="stylesheet" type="text/css" href="../examples/default.css"></head><body><h2>Lit - a <em>modern</em> literate tool</h2>
+
+<p><em>A fancy quote seems appropriate here</em></p>
+
 <p>Here is a broad overview of the programs</p>
 <pre><code><< <a id="*" href="#*">*</a> >>=
 << <a href="#imports">imports</a> >>
 << <a href="#command options">command options</a> >>
 << <a href="#command redirects">command redirects</a> >>
 << <a href="#main">main</a> >>
-</code></pre><p>We need to import some code for working on the command line</p>
+</code></pre>
+<p>We need to import some code for working on the command line</p>
 <pre><code><< <a id="imports" href="#imports">imports</a> >>=
 <span class="kw">import </span><span class="dt">System.Console.GetOpt</span>
 <span class="kw">import </span><span class="dt">System.Environment</span>
 <span class="kw">import </span><span class="dt">System.IO</span>
 <span class="kw">import </span><span class="dt">System.Exit</span>
 <span class="kw">import </span><span class="dt">Processing</span>
-</code></pre><p>Now we define the data behind some command line options</p>
+</code></pre>
+<p>Now we define the data behind some command line options</p>
 <pre><code><< <a id="command options" href="#command options">command options</a> >>=
 <span class="kw">data</span> <span class="dt">Options</span> <span class="fu">=</span> <span class="dt">Options</span>  {<span class="ot"> optCodeDir  ::</span> <span class="dt">String</span> 
                         ,<span class="ot"> optHtmlDir  ::</span> <span class="dt">String</span>

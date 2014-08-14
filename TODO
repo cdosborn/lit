@@ -1,6 +1,7 @@
-Lit.hs
-------
+lit
+---
     with command `lit -h`, error ought to raise
+    does css option work (throw error if not found)
 
 Processing
 ----------
@@ -9,6 +10,9 @@ Processing
     lookfor HashMap alternative (requires unordered containers)
     clean up pipeline funs
 
+    root is rather inflexible must be " * "
+    hacky fix with T.strip in expandParts (consolidate)
+
 Pretty
 ------
     add in custom tags for lit macros
@@ -16,3 +20,7 @@ Pretty
 
 lit.cabal
 --------
+
+Parse
+-----
+    titles must be followed by \n
