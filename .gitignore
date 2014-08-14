@@ -1,12 +1,7 @@
 *~
 *.hi
 *.o
-lit-docs/
 [._]*.s[a-w][a-z]
 [._]s[a-w][a-z]
 .DS_STORE
-cache/*
-build/*
-src/cache/*
-src/build/*
-elm_dependencies/*
+dist/*
