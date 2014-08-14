@@ -10,7 +10,6 @@ Processing
     lookfor HashMap alternative (requires unordered containers)
     clean up pipeline funs
 
-    root is rather inflexible must be " * "
     hacky fix with T.strip in expandParts (consolidate)
 
 Pretty

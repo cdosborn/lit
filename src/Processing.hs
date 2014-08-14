@@ -27,7 +27,7 @@ build mCss pipes file =
 
 htmlPipeline = (\dir css lang path enc -> writeFile ((ensureTrailingSlash dir) ++ path ++ ".html") $ pretty lang css enc)
 mdPipeline = (\dir css lang path enc -> writeFile ((ensureTrailingSlash dir) ++ path ++ ".md") $ (mark lang) enc)
-codePipeline = (\dir css lang path enc -> writeFile ((ensureTrailingSlash dir) ++ path) $ expand $ merge enc)
+codePipeline = (\dir css lang path enc -> writeFile ((ensureTrailingSlash dir) ++ path) $ T.strip $ expand $ merge enc)
 
 ensureTrailingSlash dir = 
     if last dir == '/'
@@ -121,4 +121,4 @@ expandParts parts partMap =
             Ref name -> expandParts refParts partMap
                 where refParts = Map.lookupDefault [] (T.strip name) partMap)
     in 
-        T.concat (map toText parts)
+        (T.concat (map toText parts)) `T.append` "\n"

@@ -3,6 +3,7 @@ import System.Environment
 import System.IO
 import System.Exit
 import Processing
+
 data Options = Options  { optCodeDir  :: String 
                         , optHtmlDir  :: String
                         , optCodeOnly :: Bool
@@ -15,6 +16,7 @@ startOptions = Options  { optCodeDir  = "./"
                         , optCodeOnly = False
                         , optHtmlOnly = False
                         }
+
 options :: [ OptDescr (Options -> IO Options) ]
 options =
     [ Option "d" ["html-only"]
@@ -54,6 +56,7 @@ options =
     ]
 
 header = "Usage: lit [OPTION...] FILES..."
+
 main = do
     args <- getArgs
  
