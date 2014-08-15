@@ -121,4 +121,4 @@ expandParts parts partMap =
             Ref name -> expandParts refParts partMap
                 where refParts = Map.lookupDefault [] (T.strip name) partMap)
     in 
-        (T.concat (map toText parts)) `T.append` "\n"
+        T.concat (map toText parts)
