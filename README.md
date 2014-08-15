@@ -19,7 +19,7 @@ these tools often generate nice documentation.
 
 ## Example
 
-Here is an example literate file `helloWorld.hs.lit`
+Here is an example literate file `helloWorld.hs.lit` from `examples/`
 ```
 Here is an overview of a hello world Haskell program. 
 We define * as the macro from which all other code or macros exist.
@@ -37,7 +37,7 @@ Lastly our program needs to print hello world
     main = putStr "Hello, World!"
 ```
 
-Lit can process the literate file in several ways. To simply produce the code file run:<br>
+`lit` can process the literate file in several ways. To simply produce the code file run:<br>
 `$ lit -c helloWorld.hs.lit`
 
 Which generates the file `helloWorld.hs`
@@ -47,7 +47,7 @@ main = putStr "Hello, World!"
 ```
 
 ## Syntax
-Lit only has two valid constructs:
+`lit` only has two valid constructs:
 
 A macro definition: `<< ... >>=` and a macro reference: `<< ... >>`
 
@@ -57,13 +57,19 @@ A macro definition is where the actual source code is placed. It can also contai
 It is also possible to extend a macro definition by creating a
 macro definition with the same name later in the literate file.
 
-When lit attempts to generate the source code from the literate file, it expands each
-macro reference with the corresponding macro definition. By convention, lit starts at the root macro
+When `lit` attempts to generate the source code from the literate file, it expands each
+macro reference with the corresponding macro definition. By convention, `lit` starts at the root macro
 definition `<< * >>=`, which must be included to generate source code.
 
 
 ## Install 
-In order to build, [install Haskell](http://www.haskell.org/platform/) or its [Cabal Package Manager](http://www.haskell.org/haskellwiki/Cabal-Install#Installation) and run: 
+In order to use, [install Haskell](http://www.haskell.org/platform/) and run:
+```
+cabal install lit
+```
+
+## Build
+In order to build from the latest snapshot run:
 ```
 $ git clone https://github.com/cdosborn/lit.git 
 $ cd lit/
@@ -74,8 +80,6 @@ $ cabal install
 ##Usage
 ```
 Usage: lit OPTIONS... FILES...
-
-If called without options, lit will compile your literate source code into a code file. 
 
   -h  --html          Generate html
   -m  --markdown      Generate markdown
