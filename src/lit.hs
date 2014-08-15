@@ -77,12 +77,13 @@ options =
        (NoArg
            (\_ -> do
                prg <- getProgName
-               hPutStrLn stderr (usageInfo header options)
+               hPutStrLn stderr (usageInfo usage options)
                exitWith ExitSuccess))
        "Display help"
     ]
 
-header = "Usage: lit OPTIONS... FILES..."
+usage = "Usage: lit OPTIONS... FILES..."
+help = "Try:   lit --help"
 
 main = do
     args <- getArgs
@@ -115,5 +116,5 @@ main = do
         allErr = errors ++ errors' ++ errors''
 
     if allErr /= [] || (not html && not code && not markdown) || files == []
-        then hPutStrLn stderr ((concat allErr) ++ header) 
+        then hPutStrLn stderr ((concat allErr) ++ help) 
         else (maybeWatch (Processing.build mCss pipes)) files
