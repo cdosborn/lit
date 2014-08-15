@@ -1,6 +1,5 @@
 lit
 ---
-    with command `lit -h`, error ought to raise
     does css option work (throw error if not found)
 
 Processing

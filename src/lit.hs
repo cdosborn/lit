@@ -114,6 +114,6 @@ main = do
         errors'' = if docsDirCheck then [] else ["Directory: " ++ docsDir ++ " does not exist\n"]
         allErr = errors ++ errors' ++ errors''
 
-    if allErr /= [] || (not html && not code && not markdown)
+    if allErr /= [] || (not html && not code && not markdown) || files == []
         then hPutStrLn stderr ((concat allErr) ++ header) 
         else (maybeWatch (Processing.build mCss pipes)) files
