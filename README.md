@@ -1,45 +1,22 @@
 #lit - a *modern* literate programming tool
 
-Lit has several notable features:
-
-- All prose can expressed in Markdown or plaintext
-- Supports all programming languages in theory
-- Literate constructs defined by indentation
-- Watch literate files for changes
-
-## Install 
-In order to build, fetch cabal and run: 
-```
-$ git clone https://github.com/cdosborn/lit.git 
-$ cd lit/
-$ cabal configure
-$ cabal build
-$ cabal install
-```
-##Usage
-```
-Usage: lit OPTIONS... FILES...
-  -h  --html          Generate html
-  -m  --markdown      Generate markdown
-  -c  --code          Generate code by file extension
-      --css=FILE      Specify a css file for html generation
-      --docs-dir=DIR  Directory for generated docs
-      --code-dir=DIR  Directory for generated code
-  -w  --watch         Watch for file changes, automatically run lit
-  -v  --version       Print version
-      --help          Display help
-```
-
 ## What is literate programming?
 
-Literate programming is a way to write programs prioritized for understanding. All literate programs boil
-down to prose and literate constructs. This paragraph is a valid literate program.
+[Literate programming](http://en.wikipedia.org/wiki/Literate_programming) is a way to write programs prioritized for understanding. All literate programs consist of prose and literate constructs. For example, this paragraph is a valid literate program.
 
 Literate tools take a literate file and essentially generate two types of files. Primarily,
 they generate the source code that computers understand. Because literate programs are inherently legible, 
 these tools often generate nice documentation.
 
 *Programs must be written for people to read, and only incidentally for machines to execute. <br>-H. Abelson and G. Sussman (SICP)*
+
+`lit` has several notable features:
+
+- All prose can expressed in Markdown or plaintext
+- Supports all programming languages
+- Literate constructs defined by indentation
+- Can watch files or directories for changes, and recompiles automatically
+
 ## Example
 
 Here is an example literate file `helloWorld.hs.lit`
@@ -83,3 +60,30 @@ macro definition with the same name later in the literate file.
 When lit attempts to generate the source code from the literate file, it expands each
 macro reference with the corresponding macro definition. By convention, lit starts at the root macro
 definition `<< * >>=`, which must be included to generate source code.
+
+
+## Install 
+In order to build, [install Haskell](http://www.haskell.org/platform/) or its [Cabal Package Manager](http://www.haskell.org/haskellwiki/Cabal-Install#Installation) and run: 
+```
+$ git clone https://github.com/cdosborn/lit.git 
+$ cd lit/
+$ cabal configure
+$ cabal build
+$ cabal install
+```
+##Usage
+```
+Usage: lit OPTIONS... FILES...
+
+If called without options, lit will compile your literate source code into a code file. 
+
+  -h  --html          Generate html
+  -m  --markdown      Generate markdown
+  -c  --code          Generate code by file extension
+      --css=FILE      Specify a css file for html generation
+      --docs-dir=DIR  Directory for generated docs
+      --code-dir=DIR  Directory for generated code
+  -w  --watch         Watch for file changes, automatically run lit
+  -v  --version       Print version
+      --help          Display help
+```
