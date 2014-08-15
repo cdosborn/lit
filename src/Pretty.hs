@@ -75,10 +75,7 @@ partToText :: String -> Part -> T.Text
 partToText lang part =
     case part of
     Code txt -> txt
-    Ref txt -> ("<< " `T.append` link `T.append` " >>\n")
-        where
-            link = "<a href=\"#" `T.append` slim `T.append` "\">" `T.append` slim `T.append` "</a>"
-            slim = T.strip txt
+    Ref txt -> ("<< " `T.append` (T.strip txt) `T.append` " >>\n")
 
 headerToHtml :: T.Text -> H.Html
 headerToHtml name =  H.preEscapedToHtml $ headerToText name
