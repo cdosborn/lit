@@ -88,9 +88,7 @@ headerToText name = "<< " `T.append` link `T.append` " >>=\n"
 
 headerName name = "<< " `T.append` (T.strip name) `T.append` " >>="
 
-sourceLineToHtml :: FormatOptions -> SourceLine -> H.Html
-sourceLineToHtml opts line = mconcat $ (map (tokenToHtml opts) line) ++ [(H.toHtml ("\n" :: String))]
-
+-- The methods below were heavily derived from John MacFarlane's highlighting-kate source
 tokenToHtml :: FormatOptions -> Token -> H.Html
 tokenToHtml _ (NormalTok, txt)  = H.toHtml txt
 tokenToHtml opts (toktype, txt) =
@@ -98,6 +96,9 @@ tokenToHtml opts (toktype, txt) =
      then sp ! A.title (toValue $ show toktype)
      else sp
    where sp = H.span ! A.class_ (toValue $ short toktype) $ H.toHtml txt
+
+sourceLineToHtml :: FormatOptions -> SourceLine -> H.Html
+sourceLineToHtml opts line = mconcat $ (map (tokenToHtml opts) line) ++ [(H.toHtml ("\n" :: String))]
 
 short :: TokenType -> T.Text
 short KeywordTok        = "kw"
