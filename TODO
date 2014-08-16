@@ -1,11 +1,8 @@
 lit
 ---
-    does css option work (throw error if not found)
 
 Processing
 ----------
-    simplify could be tail recursive
-    ^ should be called proseUnify ..
     lookfor HashMap alternative (requires unordered containers)
     clean up pipeline funs
 
@@ -14,7 +11,6 @@ Processing
 Pretty
 ------
     add in custom tags for lit macros
-    test Lang works
     lines with spaces (after code chunks) shouldn't show 
 
 lit.cabal

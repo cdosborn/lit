@@ -32,10 +32,6 @@ entire = manyTill chunk eof
 chunk :: Parser Chunk
 chunk = (try def) <|> prose
 
---prose :: Parser Chunk
---prose = do 
---    txts <- manyTill grabLine beginDef
---    return $ Prose $ T.concat txts
 prose :: Parser Chunk
 prose = do 
     txt <- packM =<< many (noneOf "\n\r")
@@ -65,10 +61,6 @@ defLine :: Parser Part
 defLine = do
     line <- grabLine 
     return $ Code line
-
--- Post: Consume newlines between a Code Chunk's last line and a Prose
---endDef :: String -> Parser ()
---endDef indent = try (skipMany newline >> (notFollowedBy (string indent) <|> ((lookAhead title) >> parserReturn ())))
 
 endDef :: String -> Parser ()
 endDef indent = try $ do { skipMany newline; notFollowedBy (string indent) <|> (lookAhead title >> parserReturn ()) }

@@ -3,8 +3,7 @@ module Processing
 ( build
 , htmlPipeline
 , mdPipeline
-, codePipeline 
-, simplify ) where
+, codePipeline ) where
 
 import Prelude hiding (readFile, writeFile)
 import Data.Text.IO (writeFile, readFile)
@@ -45,20 +44,6 @@ mergeAux ans (next:rest) =
         merged = combineChunks (next:found)
     in 
         mergeAux (merged:ans) rem
-
--- many consecutive Proses are reduced to a single Prose
-simplify :: [Chunk] -> [Chunk]
-simplify [] = []
-simplify lst =
-    let (defs, ps) = span isDef lst
-        (ps', rest) = break isDef ps
-    in case ps' of
-        [] -> defs ++ rest
-        _ -> defs ++ [mergeProse ps'] ++ (simplify rest)
-
-mergeProse :: [Chunk] -> Chunk
-mergeProse lst = 
-    Prose $ T.concat $ map getProseText lst
 
 consecutive :: [Chunk] -> ([Chunk],[Chunk])
 consecutive [] = ([],[])
