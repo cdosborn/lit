@@ -139,7 +139,7 @@ main <span class="fu">=</span> <span class="kw">do</span>
         errors&#39;  <span class="fu">=</span> <span class="kw">if</span> codeDirCheck <span class="kw">then</span> [] <span class="kw">else</span> [<span class="st">&quot;Directory: &quot;</span> <span class="fu">++</span> codeDir <span class="fu">++</span> <span class="st">&quot; does not exist\n&quot;</span>]
         errors&#39;&#39; <span class="fu">=</span> <span class="kw">if</span> docsDirCheck <span class="kw">then</span> [] <span class="kw">else</span> [<span class="st">&quot;Directory: &quot;</span> <span class="fu">++</span> docsDir <span class="fu">++</span> <span class="st">&quot; does not exist\n&quot;</span>]
         allErr <span class="fu">=</span> errors <span class="fu">++</span> errors&#39; <span class="fu">++</span> errors&#39;&#39;
-</code></pre><p>In the final call of main, either the programs prints <a href="/#usage%20messages">errors</a> or redirects the program flow with <code>maybeWatch</code>. The bulk of the file processing is passed to the <code>Processing.hs</code> module.</p>
+</code></pre><p>In the final call of main, either the programs prints <a href="#usage%20messages">errors</a> or redirects the program flow with <code>maybeWatch</code>. The bulk of the file processing is passed to the <code>Processing.hs</code> module.</p>
 <pre><code><< <a id="main" href="#main">main</a> >>=
     <span class="kw">if</span> allErr <span class="fu">/=</span> [] <span class="fu">||</span> (not html <span class="fu">&amp;&amp;</span> not code <span class="fu">&amp;&amp;</span> not markdown) <span class="fu">||</span> files <span class="fu">==</span> []
         <span class="kw">then</span> hPutStrLn stderr ((concat allErr) <span class="fu">++</span> help) 
