@@ -15,6 +15,7 @@ Pretty
 ------
     add in custom tags for lit macros
     test Lang works
+    lines with spaces (after code chunks) shouldn't show 
 
 lit.cabal
 --------
