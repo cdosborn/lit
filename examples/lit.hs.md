@@ -24,7 +24,6 @@ import Control.Applicative
 
 import Processing
 import Poll
-
 ```
 `types` defines the supported command line options and functions used to handle these options
 ```Haskell
