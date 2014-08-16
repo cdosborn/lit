@@ -11,6 +11,7 @@ import System.IO.Error
 watch :: (String -> IO ()) -> [String] -> IO ()
 watch fun fs = do 
     putStrLn "starting.."
+    mapM_ fun fs
      -- total microseconds for each file to cause a 1 sec delay per loop
     let delay = 1000000 `div` (length fs)
     forever $ mapM_ (onDiff fun delay) fs
@@ -20,7 +21,6 @@ onDiff fun delay file = do
     modified <- errorHandler (getModificationTime file) 
     curTime <- getCurrentTime 
     let diff = (diffUTCTime curTime modified)
-
     if diff < 1 then fun file >> C.threadDelay delay else return ()
  
 
