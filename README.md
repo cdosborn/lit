@@ -15,7 +15,7 @@ these tools often generate nice documentation.
 - All prose can expressed in Markdown or plaintext
 - Supports all programming languages
 - Literate constructs defined by indentation
-- Can watch files or directories for changes, and recompiles automatically
+- Can watch files or directories for changes, recompiling automatically
 
 ## Example
 
