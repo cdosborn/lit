@@ -11,7 +11,7 @@ import Cheapskate (markdown, def)
 import Cheapskate.Html
 import Text.Highlighting.Kate (defaultFormatOpts, highlightAs, languagesByFilename)
 import Text.Highlighting.Kate.Types 
-import Text.Blaze
+import Text.Blaze (toValue, (!))
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
 import Text.Blaze.Html.Renderer.Text (renderHtml)
@@ -22,9 +22,9 @@ import Data.Monoid (mconcat)
 
 import Types
 
-pretty :: String -> Maybe String -> [Chunk] -> T.Text
-pretty lang maybeCss chunks = 
-    TL.toStrict $ renderHtml $ preface maybeCss $ H.preEscapedToHtml $ map (chunkToHtml lang) chunks
+pretty :: String -> Maybe String -> String -> [Chunk] -> T.Text
+pretty lang maybeCss name chunks = 
+    TL.toStrict $ renderHtml $ preface maybeCss name $ H.preEscapedToHtml $ map (chunkToHtml lang) chunks
 
 mark :: String -> [Chunk] -> T.Text
 mark lang chunks = T.concat $ map (chunkToMarkdown lang) chunks
@@ -43,18 +43,28 @@ chunkToMarkdown lang chunk =
             "\n"  `T.append` mdParts `T.append` "```\n"
 
 
-preface :: Maybe String -> H.Html -> H.Html
-preface mCss rest = H.docTypeHtml $ do 
-    let css = toValue $ fromMaybe "" mCss
-    H.head $ do
-        H.link ! A.rel "stylesheet" ! A.type_ "text/css" ! A.href css
-    H.body $ do rest
+preface :: Maybe String -> String -> H.Html -> H.Html
+preface maybeCss fileName bodyHtml =
+    let 
+        cssPath = fromMaybe "" maybeCss
+        cssAttr = toValue cssPath
+        includeCss = 
+            if cssPath /= ""
+            then H.link ! A.rel "stylesheet" ! A.type_ "text/css" ! A.href cssAttr
+            else H.toHtml T.empty
+    in 
+        H.docTypeHtml $ do 
+        H.head $ do
+            H.title $ H.toHtml fileName
+            H.meta ! A.charset "UTF-8" 
+            includeCss
+        H.body $ do bodyHtml
             
 
 chunkToHtml :: String -> Chunk -> H.Html
 chunkToHtml lang chunk =
     case chunk of
-    Prose txt -> toMarkup $ markdown def txt
+    Prose txt -> H.toHtml $ markdown def txt
     Def _ name parts -> 
         let 
             header = headerToHtml name
@@ -66,7 +76,7 @@ partToHtml lang part =
     case part of
     Code txt -> mconcat $ map (sourceLineToHtml defaultFormatOpts) 
                         $ highlightAs lang (T.unpack txt)
-    Ref txt -> H.preEscapedToHtml  ("&lt;&lt;%20" `T.append` link `T.append` "%20&gt;&gt;\n")
+    Ref txt -> H.preEscapedToHtml  ("<< " `T.append` link `T.append` " >>\n")
         where
             link = "<a href=\"#" `T.append` slim `T.append` "\">" `T.append` slim `T.append` "</a>"
             slim = T.strip txt

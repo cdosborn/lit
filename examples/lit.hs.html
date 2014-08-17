@@ -1,14 +1,14 @@
 <!DOCTYPE HTML>
-<html><head><link rel="stylesheet" type="text/css" href=""></head><body><h1>lit.hs - a <em>modern</em> literate tool</h1>
+<html><head><title>lit.hs</title><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="default.css"></head><body><h1>lit.hs - a <em>modern</em> literate tool</h1>
 
 <p><code>lit</code> attempts to build upon the evolution of prior <a href="http://en.wikipedia.org/wiki/Literate_programming">literate programming</a> (LP) tools. Donald Knuth pioneered LP and with it the first tool CWEB. CWEB was initially limited to only C and utilized 35 different control structures. CWEB supported tex for typesetting the literate programs. <code>lit</code>, while more restricted, is language independent with only 2 control structures. <code>lit</code> uses markdown for styling documents, and relies on indentation for defining code chunks.</p>
 
 <p>A high-level overview of <code>lit.hs</code>:</p>
 <pre><code><< <a id="*" href="#*">*</a> >>=
-&lt;&lt;%20<a href="#imports">imports</a>%20&gt;&gt;
-&lt;&lt;%20<a href="#types">types</a>%20&gt;&gt;
-&lt;&lt;%20<a href="#usage messages">usage messages</a>%20&gt;&gt;
-&lt;&lt;%20<a href="#main">main</a>%20&gt;&gt;
+<< <a href="#imports">imports</a> >>
+<< <a href="#types">types</a> >>
+<< <a href="#usage messages">usage messages</a> >>
+<< <a href="#main">main</a> >>
 </code></pre><p><code>lit</code> is a command line utility which relies upon several libraries which handle standard command line use. <code>lit</code> imports <code>Processing</code> which is the glue for the programs other components. <code>Poll</code> is the module which handles file polling in the <code>--watch</code> option available in <code>lit</code>.</p>
 <pre><code><< <a id="imports" href="#imports">imports</a> >>=
 <span class="kw">module</span> <span class="dt">Main</span> <span class="kw">where</span>
@@ -24,9 +24,9 @@
 <span class="kw">import </span><span class="dt">Poll</span>
 </code></pre><p><code>types</code> defines the supported command line options and functions used to handle these options</p>
 <pre><code><< <a id="types" href="#types">types</a> >>=
-&lt;&lt;%20<a href="#datatype for passing options">datatype for passing options</a>%20&gt;&gt;
-&lt;&lt;%20<a href="#default options">default options</a>%20&gt;&gt;
-&lt;&lt;%20<a href="#option transforms">option transforms</a>%20&gt;&gt;
+<< <a href="#datatype for passing options">datatype for passing options</a> >>
+<< <a href="#default options">default options</a> >>
+<< <a href="#option transforms">option transforms</a> >>
 </code></pre><p><code>Options</code> serves to represent the different command line options which are handled during use.</p>
 <pre><code><< <a id="datatype for passing options" href="#datatype for passing options">datatype for passing options</a> >>=
 <span class="kw">data</span> <span class="dt">Options</span> <span class="fu">=</span> <span class="dt">Options</span>  {<span class="ot"> optCodeDir  ::</span> <span class="dt">String</span> 
