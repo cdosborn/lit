@@ -7,6 +7,7 @@ module Processing
 
 import Prelude hiding (readFile, writeFile)
 import Data.Text.IO (writeFile, readFile)
+import System.FilePath.Posix (takeFileName, dropExtension)
 
 import Data.List (partition)
 import qualified Data.HashMap.Strict as Map
@@ -17,7 +18,7 @@ import Pretty
 import Types
 
 build mCss pipes file =
-    let fileName = fileNameFromPath file
+    let fileName = dropExtension $ takeFileName file
         lang = getLang fileName
     in do
         stream <- readFile file

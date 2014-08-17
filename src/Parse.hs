@@ -1,7 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Parse where
 
-import Text.Regex
 import Text.Parsec
 import Text.Parsec.Text
 import qualified Data.Text as T
@@ -90,11 +89,3 @@ ws :: Parser Char
 ws = char ' ' <|> char '\t'  -- consume a whitespace char
 eol :: Parser Char
 eol = char '\n' <|> char '\r'
-
-fileNameFromPath :: String -> String
-fileNameFromPath path =
-    let r = mkRegex "(\\w+\\.\\w+)\\.lit$"
-        m = matchRegex r path 
-    in case m of 
-        Just (fst:rest) -> fst
-        Nothing -> ""
