@@ -75,18 +75,18 @@ partToText :: String -> Part -> T.Text
 partToText lang part =
     case part of
     Code txt -> txt
-    Ref txt -> ("&lt;&lt;%20" `T.append` (T.strip txt) `T.append` "%20&gt;&gt;\n")
+    Ref txt -> ("<< " `T.append` (T.strip txt) `T.append` " >>\n")
 
 headerToHtml :: T.Text -> H.Html
 headerToHtml name =  H.preEscapedToHtml $ headerToText name
 
 headerToText :: T.Text -> T.Text
-headerToText name = "&lt;&lt;%20" `T.append` link `T.append` "%20&gt;&gt;=\n" 
+headerToText name = "<< " `T.append` link `T.append` " >>=\n" 
     where
         link = "<a id=\"" `T.append` slim `T.append` "\" href=\"#" `T.append` slim `T.append` "\">" `T.append` slim `T.append` "</a>"
         slim = T.strip name
 
-headerName name = "&lt;&lt;%20" `T.append` (T.strip name) `T.append` "%20&gt;&gt;="
+headerName name = "<< " `T.append` (T.strip name) `T.append` " >>="
 
 -- The methods below were heavily derived from John MacFarlane's highlighting-kate source
 tokenToHtml :: FormatOptions -> Token -> H.Html

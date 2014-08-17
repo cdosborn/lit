@@ -2,18 +2,18 @@
 
 Here is an overview of a hello world Haskell program.  We define * as the macro from which all other code or macros exist.
 ```Haskell
-&lt;&lt;%20*%20&gt;&gt;=
-&lt;&lt;%20a trivial comment%20&gt;&gt;
-&lt;&lt;%20print a string%20&gt;&gt;
+<< * >>=
+<< a trivial comment >>
+<< print a string >>
 ```
 Now we can define each of the above macros,
 beginning with an inconsequential comment!
 ```Haskell
-&lt;&lt;%20a trivial comment%20&gt;&gt;=
+<< a trivial comment >>=
 -- this is a hello world haskell program
 ```
 Lastly our program needs to print hello world
 ```Haskell
-&lt;&lt;%20print a string%20&gt;&gt;=
+<< print a string >>=
 main = putStr "Hello, World!"
 ```
