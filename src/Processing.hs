@@ -26,7 +26,7 @@ build mCss pipes file =
         encoded <- return $ encode stream 
         mapM_ (\f -> f mCss lang fileName encoded) pipes >> return ()
 
-htmlPipeline = (\dir css lang path enc -> writeFile ((ensureTrailingSlash dir) ++ path ++ ".html") $ sanitize $ pretty lang css enc)
+htmlPipeline = (\dir css lang path enc -> writeFile ((ensureTrailingSlash dir) ++ path ++ ".html") $ pretty lang css enc)
 mdPipeline = (\dir css lang path enc -> writeFile ((ensureTrailingSlash dir) ++ path ++ ".md") $ (mark lang) enc)
 codePipeline = (\dir css lang path enc -> writeFile ((ensureTrailingSlash dir) ++ path) $ T.strip $ expand $ merge enc)
 
