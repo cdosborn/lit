@@ -1,16 +1,16 @@
 <!DOCTYPE HTML>
-<html><head><title>lit.hs</title><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="default.css"></head><body><h1>lit.hs - a <em>modern</em> literate tool</h1>
+<html><head><title>lit.hs</title><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="../examples/default.css"></head><body><h1>lit.hs - a <em>modern</em> literate tool</h1>
 
 <p><code>lit</code> attempts to build upon the evolution of prior <a href="http://en.wikipedia.org/wiki/Literate_programming">literate programming</a> (LP) tools. Donald Knuth pioneered LP and with it the first tool CWEB. CWEB was initially limited to only C and utilized 35 different control structures. CWEB supported tex for typesetting the literate programs. <code>lit</code>, while more restricted, is language independent with only 2 control structures. <code>lit</code> uses markdown for styling documents, and relies on indentation for defining code chunks.</p>
 
 <p>A high-level overview of <code>lit.hs</code>:</p>
-<pre><code><< <a id="*" href="#*">*</a> >>=
-<< <a href="#imports">imports</a> >>
-<< <a href="#types">types</a> >>
-<< <a href="#usage messages">usage messages</a> >>
-<< <a href="#main">main</a> >>
+<pre><code>&lt;&lt; <a id="*" href="#*">*</a> &gt;&gt;=
+&lt;&lt; <a href="#imports">imports</a> &gt;&gt;
+&lt;&lt; <a href="#types">types</a> &gt;&gt;
+&lt;&lt; <a href="#usage messages">usage messages</a> &gt;&gt;
+&lt;&lt; <a href="#main">main</a> &gt;&gt;
 </code></pre><p><code>lit</code> is a command line utility which relies upon several libraries which handle standard command line use. <code>lit</code> imports <code>Processing</code> which is the glue for the programs other components. <code>Poll</code> is the module which handles file polling in the <code>--watch</code> option available in <code>lit</code>.</p>
-<pre><code><< <a id="imports" href="#imports">imports</a> >>=
+<pre><code>&lt;&lt; <a id="imports" href="#imports">imports</a> &gt;&gt;=
 <span class="kw">module</span> <span class="dt">Main</span> <span class="kw">where</span>
 
 <span class="kw">import </span><span class="dt">System.Console.GetOpt</span>
@@ -23,12 +23,12 @@
 <span class="kw">import </span><span class="dt">Processing</span>
 <span class="kw">import </span><span class="dt">Poll</span>
 </code></pre><p><code>types</code> defines the supported command line options and functions used to handle these options</p>
-<pre><code><< <a id="types" href="#types">types</a> >>=
-<< <a href="#datatype for passing options">datatype for passing options</a> >>
-<< <a href="#default options">default options</a> >>
-<< <a href="#option transforms">option transforms</a> >>
+<pre><code>&lt;&lt; <a id="types" href="#types">types</a> &gt;&gt;=
+&lt;&lt; <a href="#datatype for passing options">datatype for passing options</a> &gt;&gt;
+&lt;&lt; <a href="#default options">default options</a> &gt;&gt;
+&lt;&lt; <a href="#option transforms">option transforms</a> &gt;&gt;
 </code></pre><p><code>Options</code> serves to represent the different command line options which are handled during use.</p>
-<pre><code><< <a id="datatype for passing options" href="#datatype for passing options">datatype for passing options</a> >>=
+<pre><code>&lt;&lt; <a id="datatype for passing options" href="#datatype for passing options">datatype for passing options</a> &gt;&gt;=
 <span class="kw">data</span> <span class="dt">Options</span> <span class="fu">=</span> <span class="dt">Options</span>  {<span class="ot"> optCodeDir  ::</span> <span class="dt">String</span> 
                         ,<span class="ot"> optDocsDir  ::</span> <span class="dt">String</span>
                         ,<span class="ot"> optCss      ::</span> <span class="dt">Maybe</span> <span class="dt">String</span>
@@ -37,7 +37,7 @@
                         ,<span class="ot"> optMarkdown ::</span> <span class="dt">Bool</span>
                         ,<span class="ot"> optWatch    ::</span> <span class="dt">Bool</span>
                         }
-</code></pre><pre><code><< <a id="default options" href="#default options">default options</a> >>=
+</code></pre><pre><code>&lt;&lt; <a id="default options" href="#default options">default options</a> &gt;&gt;=
 <span class="ot">startOptions ::</span> <span class="dt">Options</span>
 startOptions <span class="fu">=</span> <span class="dt">Options</span>  { optCodeDir  <span class="fu">=</span> <span class="st">&quot;./&quot;</span>
                         , optDocsDir  <span class="fu">=</span> <span class="st">&quot;./&quot;</span>
@@ -48,7 +48,7 @@ startOptions <span class="fu">=</span> <span class="dt">Options</span>  { optCod
                         , optWatch    <span class="fu">=</span> <span class="dt">False</span>
                         }
 </code></pre><p><code>options</code> is a list of monadic functions, which are applied to the options passed as arguments to <code>lit</code>. <code>options</code> provides the general program flow for argument handling.</p>
-<pre><code><< <a id="option transforms" href="#option transforms">option transforms</a> >>=
+<pre><code>&lt;&lt; <a id="option transforms" href="#option transforms">option transforms</a> &gt;&gt;=
 <span class="ot">options ::</span> [ <span class="dt">OptDescr</span> (<span class="dt">Options</span> <span class="ot">-&gt;</span> <span class="dt">IO</span> <span class="dt">Options</span>) ]
 options <span class="fu">=</span> 
     [ <span class="dt">Option</span>  <span class="st">&quot;h&quot;</span> [<span class="st">&quot;html&quot;</span>]
@@ -102,18 +102,18 @@ options <span class="fu">=</span>
        <span class="st">&quot;Display help&quot;</span>
     ]
 </code></pre><p><code>usage</code> and <code>help</code> are definitions used whenever <code>--help</code> is passed, or an incorrect option is passed.</p>
-<pre><code><< <a id="usage messages" href="#usage messages">usage messages</a> >>=
+<pre><code>&lt;&lt; <a id="usage messages" href="#usage messages">usage messages</a> &gt;&gt;=
 usage <span class="fu">=</span> <span class="st">&quot;Usage: lit OPTIONS... FILES...&quot;</span>
 help <span class="fu">=</span> <span class="st">&quot;Try:   lit --help&quot;</span>
 </code></pre><p><code>main</code> defines the entry point for execution. <code>getOpt</code> interprets the command line arguments to yield <code>actions</code>, <code>files</code>, and <code>errors</code></p>
-<pre><code><< <a id="main" href="#main">main</a> >>=
+<pre><code>&lt;&lt; <a id="main" href="#main">main</a> &gt;&gt;=
 main <span class="fu">=</span> <span class="kw">do</span>
     args <span class="ot">&lt;-</span> getArgs
  
     <span class="co">-- Parse options, getting a list of option actions</span>
     <span class="kw">let</span> (actions, files, errors) <span class="fu">=</span> getOpt <span class="dt">Permute</span> options args
 </code></pre><p>After interpreting the arguments, <code>foldl</code> threads the default options through each action, updating the defaults.</p>
-<pre><code><< <a id="main" href="#main">main</a> >>=
+<pre><code>&lt;&lt; <a id="main" href="#main">main</a> &gt;&gt;=
     opts <span class="ot">&lt;-</span> foldl (<span class="fu">&gt;&gt;=</span>) (return startOptions) actions
  
     <span class="kw">let</span> <span class="dt">Options</span> { optCodeDir  <span class="fu">=</span> codeDir
@@ -125,11 +125,11 @@ main <span class="fu">=</span> <span class="kw">do</span>
                 , optWatch    <span class="fu">=</span> watching
                 } <span class="fu">=</span> opts 
 </code></pre><p>A brief check to ensure that the directories actually exist for the given strings. This prevents ambiguous errors about writing to invalid paths.</p>
-<pre><code><< <a id="main" href="#main">main</a> >>=
+<pre><code>&lt;&lt; <a id="main" href="#main">main</a> &gt;&gt;=
     codeDirCheck <span class="ot">&lt;-</span> doesDirectoryExist codeDir
     docsDirCheck <span class="ot">&lt;-</span> doesDirectoryExist docsDir
 </code></pre><p>Based on the conditions, we build part of the pipeline for generating (html/markdown/code). This block aims to gather all the pipes and program errors into lists, which will be iterated over. <code>maybeWatch</code> determines whether the files should be directly passed through the pipes via <code>mapM_</code> or whether <code>Poll.watch</code> should manage the pipelines whenever the underlying files change.</p>
-<pre><code><< <a id="main" href="#main">main</a> >>=
+<pre><code>&lt;&lt; <a id="main" href="#main">main</a> &gt;&gt;=
     <span class="kw">let</span> htmlPipe <span class="fu">=</span> <span class="kw">if</span> html     <span class="kw">then</span> [Processing.htmlPipeline docsDir] <span class="kw">else</span> []
         mdPipe   <span class="fu">=</span> <span class="kw">if</span> markdown <span class="kw">then</span> [Processing.mdPipeline   docsDir] <span class="kw">else</span> []
         codePipe <span class="fu">=</span> <span class="kw">if</span> code     <span class="kw">then</span> [Processing.codePipeline codeDir] <span class="kw">else</span> []
@@ -139,7 +139,7 @@ main <span class="fu">=</span> <span class="kw">do</span>
         errors&#39;&#39; <span class="fu">=</span> <span class="kw">if</span> docsDirCheck <span class="kw">then</span> [] <span class="kw">else</span> [<span class="st">&quot;Directory: &quot;</span> <span class="fu">++</span> docsDir <span class="fu">++</span> <span class="st">&quot; does not exist\n&quot;</span>]
         allErr <span class="fu">=</span> errors <span class="fu">++</span> errors&#39; <span class="fu">++</span> errors&#39;&#39;
 </code></pre><p>In the final call of main, either the programs prints <a href="#usage%20messages">errors</a> or redirects the program flow with <code>maybeWatch</code>. The bulk of the file processing is passed to the <code>Processing.hs</code> module.</p>
-<pre><code><< <a id="main" href="#main">main</a> >>=
+<pre><code>&lt;&lt; <a id="main" href="#main">main</a> &gt;&gt;=
     <span class="kw">if</span> allErr <span class="fu">/=</span> [] <span class="fu">||</span> (not html <span class="fu">&amp;&amp;</span> not code <span class="fu">&amp;&amp;</span> not markdown) <span class="fu">||</span> files <span class="fu">==</span> []
         <span class="kw">then</span> hPutStrLn stderr ((concat allErr) <span class="fu">++</span> help) 
         <span class="kw">else</span> (maybeWatch (Processing.build mCss pipes)) files

@@ -76,7 +76,7 @@ partToHtml lang part =
     case part of
     Code txt -> mconcat $ map (sourceLineToHtml defaultFormatOpts) 
                         $ highlightAs lang (T.unpack txt)
-    Ref txt -> H.preEscapedToHtml  ("<< " `T.append` link `T.append` " >>\n")
+    Ref txt -> H.preEscapedToHtml  ("&lt;&lt; " `T.append` link `T.append` " &gt;&gt;\n")
         where
             link = "<a href=\"#" `T.append` slim `T.append` "\">" `T.append` slim `T.append` "</a>"
             slim = T.strip txt
@@ -88,14 +88,12 @@ partToText lang part =
     Ref txt -> ("<< " `T.append` (T.strip txt) `T.append` " >>\n")
 
 headerToHtml :: T.Text -> H.Html
-headerToHtml name =  H.preEscapedToHtml $ headerToText name
-
-headerToText :: T.Text -> T.Text
-headerToText name = "<< " `T.append` link `T.append` " >>=\n" 
+headerToHtml name =  H.preEscapedToHtml $ "&lt;&lt; " `T.append` link `T.append` " &gt;&gt;=\n" 
     where
         link = "<a id=\"" `T.append` slim `T.append` "\" href=\"#" `T.append` slim `T.append` "\">" `T.append` slim `T.append` "</a>"
         slim = T.strip name
 
+headerName :: T.Text -> T.Text
 headerName name = "<< " `T.append` (T.strip name) `T.append` " >>="
 
 -- The methods below were heavily derived from John MacFarlane's highlighting-kate source
