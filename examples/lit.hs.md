@@ -4,15 +4,15 @@
 
 A high-level overview of `lit.hs`:
 ```Haskell
-<< * >>=
-<< imports >>
-<< types >>
-<< usage messages >>
-<< main >>
+&lt&lt * &gt&gt;=
+&lt&lt imports &gt&gt
+&lt&lt types &gt&gt
+&lt&lt usage messages &gt&gt
+&lt&lt main &gt&gt
 ```
 `lit` is a command line utility which relies upon several libraries which handle standard command line use. `lit` imports `Processing` which is the glue for the programs other components. `Poll` is the module which handles file polling in the `--watch` option available in `lit`.
 ```Haskell
-<< imports >>=
+&lt&lt imports &gt&gt;=
 module Main where
 
 import System.Console.GetOpt
@@ -27,14 +27,14 @@ import Poll
 ```
 `types` defines the supported command line options and functions used to handle these options
 ```Haskell
-<< types >>=
-<< datatype for passing options >>
-<< default options >>
-<< option transforms >>
+&lt&lt types &gt&gt;=
+&lt&lt datatype for passing options &gt&gt
+&lt&lt default options &gt&gt
+&lt&lt option transforms &gt&gt
 ```
 `Options` serves to represent the different command line options which are handled during use. 
 ```Haskell
-<< datatype for passing options >>=
+&lt&lt datatype for passing options &gt&gt;=
 data Options = Options  { optCodeDir  :: String 
                         , optDocsDir  :: String
                         , optCss      :: Maybe String
@@ -45,7 +45,7 @@ data Options = Options  { optCodeDir  :: String
                         }
 ```
 ```Haskell
-<< default options >>=
+&lt&lt default options &gt&gt;=
 startOptions :: Options
 startOptions = Options  { optCodeDir  = "./"
                         , optDocsDir  = "./"
@@ -58,7 +58,7 @@ startOptions = Options  { optCodeDir  = "./"
 ```
 `options` is a list of monadic functions, which are applied to the options passed as arguments to `lit`. `options` provides the general program flow for argument handling.
 ```Haskell
-<< option transforms >>=
+&lt&lt option transforms &gt&gt;=
 options :: [ OptDescr (Options -> IO Options) ]
 options = 
     [ Option  "h" ["html"]
@@ -114,13 +114,13 @@ options =
 ```
 `usage` and `help` are definitions used whenever `--help` is passed, or an incorrect option is passed.
 ```Haskell
-<< usage messages >>=
+&lt&lt usage messages &gt&gt;=
 usage = "Usage: lit OPTIONS... FILES..."
 help = "Try:   lit --help"
 ```
 `main` defines the entry point for execution. `getOpt` interprets the command line arguments to yield `actions`, `files`, and `errors`
 ```Haskell
-<< main >>=
+&lt&lt main &gt&gt;=
 main = do
     args <- getArgs
  
@@ -129,7 +129,7 @@ main = do
 ```
 After interpreting the arguments, `foldl` threads the default options through each action, updating the defaults.
 ```Haskell
-<< main >>=
+&lt&lt main &gt&gt;=
     opts <- foldl (>>=) (return startOptions) actions
  
     let Options { optCodeDir  = codeDir
@@ -143,13 +143,13 @@ After interpreting the arguments, `foldl` threads the default options through ea
 ```
 A brief check to ensure that the directories actually exist for the given strings. This prevents ambiguous errors about writing to invalid paths.
 ```Haskell
-<< main >>=
+&lt&lt main &gt&gt;=
     codeDirCheck <- doesDirectoryExist codeDir
     docsDirCheck <- doesDirectoryExist docsDir
 ```
 Based on the conditions, we build part of the pipeline for generating (html/markdown/code). This block aims to gather all the pipes and program errors into lists, which will be iterated over. `maybeWatch` determines whether the files should be directly passed through the pipes via `mapM_` or whether `Poll.watch` should manage the pipelines whenever the underlying files change.
 ```Haskell
-<< main >>=
+&lt&lt main &gt&gt;=
     let htmlPipe = if html     then [Processing.htmlPipeline docsDir] else []
         mdPipe   = if markdown then [Processing.mdPipeline   docsDir] else []
         codePipe = if code     then [Processing.codePipeline codeDir] else []
@@ -161,7 +161,7 @@ Based on the conditions, we build part of the pipeline for generating (html/mark
 ```
 In the final call of main, either the programs prints [errors](#usage%20messages) or redirects the program flow with `maybeWatch`. The bulk of the file processing is passed to the `Processing.hs` module.
 ```Haskell
-<< main >>=
+&lt&lt main &gt&gt;=
     if allErr /= [] || (not html && not code && not markdown) || files == []
         then hPutStrLn stderr ((concat allErr) ++ help) 
         else (maybeWatch (Processing.build mCss pipes)) files

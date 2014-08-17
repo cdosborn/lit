@@ -8,7 +8,6 @@ module Processing
 import Prelude hiding (readFile, writeFile)
 import Data.Text.IO (writeFile, readFile)
 import System.FilePath.Posix (takeFileName, dropExtension)
-import Text.HTML.SanitizeXSS (sanitize)
 
 import Data.List (partition)
 import qualified Data.HashMap.Strict as Map
