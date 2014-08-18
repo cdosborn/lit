@@ -78,8 +78,9 @@ partToHtml lang part =
                         $ highlightAs lang (T.unpack txt)
     Ref txt -> H.preEscapedToHtml  ("&lt;&lt; " `T.append` link `T.append` " &gt;&gt;\n")
         where
-            link = "<a href=\"#" `T.append` slim `T.append` "\">" `T.append` slim `T.append` "</a>"
+            link = "<a href=\"#" `T.append` escaped `T.append` "\">" `T.append` slim `T.append` "</a>"
             slim = T.strip txt
+            escaped = escape slim 
 
 partToText :: String -> Part -> T.Text
 partToText lang part =
@@ -90,8 +91,13 @@ partToText lang part =
 headerToHtml :: T.Text -> H.Html
 headerToHtml name =  H.preEscapedToHtml $ "&lt;&lt; " `T.append` link `T.append` " &gt;&gt;=\n" 
     where
-        link = "<a id=\"" `T.append` slim `T.append` "\" href=\"#" `T.append` slim `T.append` "\">" `T.append` slim `T.append` "</a>"
+        link = "<a id=\"" `T.append` escaped `T.append` "\" href=\"#" `T.append` escaped `T.append` "\">" `T.append` slim `T.append` "</a>"
         slim = T.strip name
+        escaped = escape slim 
+
+escape :: T.Text -> T.Text
+escape txt =
+    T.pack $ concat $ map (\c -> if c == ' ' then "%20" else [c]) $ T.unpack txt
 
 headerName :: T.Text -> T.Text
 headerName name = "<< " `T.append` (T.strip name) `T.append` " >>="

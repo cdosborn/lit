@@ -7,7 +7,7 @@
 <pre><code>&lt;&lt; <a id="*" href="#*">*</a> &gt;&gt;=
 &lt;&lt; <a href="#imports">imports</a> &gt;&gt;
 &lt;&lt; <a href="#types">types</a> &gt;&gt;
-&lt;&lt; <a href="#usage messages">usage messages</a> &gt;&gt;
+&lt;&lt; <a href="#usage%20messages">usage messages</a> &gt;&gt;
 &lt;&lt; <a href="#main">main</a> &gt;&gt;
 </code></pre><p><code>lit</code> is a command line utility which relies upon several libraries which handle standard command line use. <code>lit</code> imports <code>Processing</code> which is the glue for the programs other components. <code>Poll</code> is the module which handles file polling in the <code>--watch</code> option available in <code>lit</code>.</p>
 <pre><code>&lt;&lt; <a id="imports" href="#imports">imports</a> &gt;&gt;=
@@ -24,11 +24,11 @@
 <span class="kw">import </span><span class="dt">Poll</span>
 </code></pre><p><code>types</code> defines the supported command line options and functions used to handle these options</p>
 <pre><code>&lt;&lt; <a id="types" href="#types">types</a> &gt;&gt;=
-&lt;&lt; <a href="#datatype for passing options">datatype for passing options</a> &gt;&gt;
-&lt;&lt; <a href="#default options">default options</a> &gt;&gt;
-&lt;&lt; <a href="#option transforms">option transforms</a> &gt;&gt;
+&lt;&lt; <a href="#datatype%20for%20passing%20options">datatype for passing options</a> &gt;&gt;
+&lt;&lt; <a href="#default%20options">default options</a> &gt;&gt;
+&lt;&lt; <a href="#option%20transforms">option transforms</a> &gt;&gt;
 </code></pre><p><code>Options</code> serves to represent the different command line options which are handled during use.</p>
-<pre><code>&lt;&lt; <a id="datatype for passing options" href="#datatype for passing options">datatype for passing options</a> &gt;&gt;=
+<pre><code>&lt;&lt; <a id="datatype%20for%20passing%20options" href="#datatype%20for%20passing%20options">datatype for passing options</a> &gt;&gt;=
 <span class="kw">data</span> <span class="dt">Options</span> <span class="fu">=</span> <span class="dt">Options</span>  {<span class="ot"> optCodeDir  ::</span> <span class="dt">String</span> 
                         ,<span class="ot"> optDocsDir  ::</span> <span class="dt">String</span>
                         ,<span class="ot"> optCss      ::</span> <span class="dt">Maybe</span> <span class="dt">String</span>
@@ -37,7 +37,7 @@
                         ,<span class="ot"> optMarkdown ::</span> <span class="dt">Bool</span>
                         ,<span class="ot"> optWatch    ::</span> <span class="dt">Bool</span>
                         }
-</code></pre><pre><code>&lt;&lt; <a id="default options" href="#default options">default options</a> &gt;&gt;=
+</code></pre><pre><code>&lt;&lt; <a id="default%20options" href="#default%20options">default options</a> &gt;&gt;=
 <span class="ot">startOptions ::</span> <span class="dt">Options</span>
 startOptions <span class="fu">=</span> <span class="dt">Options</span>  { optCodeDir  <span class="fu">=</span> <span class="st">&quot;./&quot;</span>
                         , optDocsDir  <span class="fu">=</span> <span class="st">&quot;./&quot;</span>
@@ -48,7 +48,7 @@ startOptions <span class="fu">=</span> <span class="dt">Options</span>  { optCod
                         , optWatch    <span class="fu">=</span> <span class="dt">False</span>
                         }
 </code></pre><p><code>options</code> is a list of monadic functions, which are applied to the options passed as arguments to <code>lit</code>. <code>options</code> provides the general program flow for argument handling.</p>
-<pre><code>&lt;&lt; <a id="option transforms" href="#option transforms">option transforms</a> &gt;&gt;=
+<pre><code>&lt;&lt; <a id="option%20transforms" href="#option%20transforms">option transforms</a> &gt;&gt;=
 <span class="ot">options ::</span> [ <span class="dt">OptDescr</span> (<span class="dt">Options</span> <span class="ot">-&gt;</span> <span class="dt">IO</span> <span class="dt">Options</span>) ]
 options <span class="fu">=</span> 
     [ <span class="dt">Option</span>  <span class="st">&quot;h&quot;</span> [<span class="st">&quot;html&quot;</span>]
@@ -102,7 +102,7 @@ options <span class="fu">=</span>
        <span class="st">&quot;Display help&quot;</span>
     ]
 </code></pre><p><code>usage</code> and <code>help</code> are definitions used whenever <code>--help</code> is passed, or an incorrect option is passed.</p>
-<pre><code>&lt;&lt; <a id="usage messages" href="#usage messages">usage messages</a> &gt;&gt;=
+<pre><code>&lt;&lt; <a id="usage%20messages" href="#usage%20messages">usage messages</a> &gt;&gt;=
 usage <span class="fu">=</span> <span class="st">&quot;Usage: lit OPTIONS... FILES...&quot;</span>
 help <span class="fu">=</span> <span class="st">&quot;Try:   lit --help&quot;</span>
 </code></pre><p><code>main</code> defines the entry point for execution. <code>getOpt</code> interprets the command line arguments to yield <code>actions</code>, <code>files</code>, and <code>errors</code></p>
