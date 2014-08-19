@@ -46,13 +46,6 @@ mergeAux ans (next:rest) =
     in 
         mergeAux (merged:ans) rem
 
-consecutive :: [Chunk] -> ([Chunk],[Chunk])
-consecutive [] = ([],[])
-consecutive lst@(fst:rest) =
-    case fst of
-    Prose _ -> break isDef lst
-    Def _ _ _ -> span isDef lst
-
 -- assumes always one or more chunk
 combineChunks :: [Chunk] -> Chunk
 combineChunks (a:[]) = a
