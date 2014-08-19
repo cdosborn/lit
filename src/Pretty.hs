@@ -1,8 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Pretty 
 ( pretty
-, mark 
-, getLang ) where
+, mark ) where
 
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
@@ -21,16 +20,24 @@ import Data.Maybe (fromMaybe)
 import Data.Monoid (mconcat)
 
 import Types
+import Util
 
-pretty :: String -> Maybe String -> String -> [Chunk] -> T.Text
-pretty lang maybeCss name chunks = 
-    TL.toStrict $ renderHtml $ preface maybeCss name $ H.preEscapedToHtml $ map (chunkToHtml lang) chunks
+pretty :: Maybe String -> String -> [Chunk] -> T.Text
+pretty maybeCss name chunks = 
+    let 
+        lang = getLang name
+        body = H.preEscapedToHtml $ map (chunkToHtml lang) chunks
+        doc = preface maybeCss name body
+    in 
+        TL.toStrict $ renderHtml doc
 
 mark :: String -> [Chunk] -> T.Text
-mark lang chunks = T.concat $ map (chunkToMarkdown lang) chunks
-
-(<++>) :: T.Text -> T.Text -> T.Text
-(<++>) = T.append
+mark name chunks = 
+    let 
+        lang = getLang name
+        toMarkDown = chunkToMarkdown lang
+    in
+        T.concat $ map toMarkDown chunks
 
 chunkToMarkdown lang chunk =
     case chunk of

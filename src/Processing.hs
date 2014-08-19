@@ -16,23 +16,19 @@ import qualified Data.Text as T
 import Parse
 import Pretty
 import Types
+import Util
 
 build pipes file =
-    let fileName = dropExtension $ takeFileName file
-        lang = getLang fileName
+    let 
+        fileName = dropExtension $ takeFileName file
     in do
         stream <- readFile file
         encoded <- return $ encode stream 
-        mapM_ (\f -> f lang fileName encoded) pipes >> return ()
+        mapM_ (\f -> f fileName encoded) pipes >> return ()
 
-htmlPipeline = (\dir css lang path enc -> writeFile ((ensureTrailingSlash dir) ++ path ++ ".html") $ pretty lang css path enc)
-mdPipeline = (\dir css lang path enc -> writeFile ((ensureTrailingSlash dir) ++ path ++ ".md") $ (mark lang) enc)
-codePipeline = (\dir css lang path enc -> writeFile ((ensureTrailingSlash dir) ++ path) $ T.strip $ expand $ merge enc)
-
-ensureTrailingSlash dir = 
-    if last dir == '/'
-    then dir
-    else dir ++ "/"
+htmlPipeline = (\dir css name enc -> writeFile ((ensureTrailingSlash dir) ++ name ++ ".html") $ pretty css name enc)
+mdPipeline = (\dir css name enc -> writeFile ((ensureTrailingSlash dir) ++ name ++ ".md") $ mark name enc)
+codePipeline = (\dir css name enc -> writeFile ((ensureTrailingSlash dir) ++ name) $ T.strip $ expand $ merge enc)
 
 -- merge together definitions with the same name
 merge :: [Chunk] -> [Chunk]
@@ -41,7 +37,8 @@ mergeAux ans [] = ans
 mergeAux ans (next:rest) = 
     let 
         name = getName next
-        (found, rem) = partition (sameName name) rest 
+        chunkHasName name = (== name) . getName
+        (found, rem) = partition (chunkHasName name) rest 
         merged = combineChunks (next:found)
     in 
         mergeAux (merged:ans) rem
@@ -54,33 +51,6 @@ combineChunks l@(c:cs) = Def line name parts
         parts = concatMap getParts l
         name = getName c
         line = getLineNo c
-
-isDef chunk =
-    case chunk of
-    Def _ _ _ -> True
-    Prose _ -> False
-
-getProseText prose =
-    case prose of
-    Prose txt -> txt
-    _ -> error "cannot retrieve txt, not a prose"
-
-getName chunk =
-    case chunk of
-    Def _ name _ -> name
-    _ -> error "cannot retrieve name, not a chunk"
-
-getParts chunk =
-    case chunk of
-    Def _ _ parts -> parts
-    _ -> error "cannot retrieve parts, not a chunk"
-
-getLineNo chunk =
-    case chunk of
-    Def line _ _ -> line
-    _ -> error "cannot retrieve line number, not a chunk"
-
-sameName name chunk = name == (getName chunk)
 
 expand :: [Chunk] -> T.Text
 expand chunks =

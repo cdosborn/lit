@@ -23,7 +23,7 @@ Source-repository head
 executable lit
   main-is:           lit.hs  
   hs-source-dirs:    src
-  other-modules:     Parse, Poll, Pretty, Processing, Types
+  other-modules:     Parse, Poll, Pretty, Processing, Types, Util
   build-depends:     base ==4.*,
                      text ==1.1.*, 
                      parsec ==3.*, 
