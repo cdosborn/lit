@@ -130,9 +130,9 @@ main <span class="fu">=</span> <span class="kw">do</span>
     docsDirCheck <span class="ot">&lt;-</span> doesDirectoryExist docsDir
 </code></pre><p>Based on the conditions, we build part of the pipeline for generating (html/markdown/code). This block aims to gather all the pipes and program errors into lists, which will be iterated over. <code>maybeWatch</code> determines whether the files should be directly passed through the pipes via <code>mapM_</code> or whether <code>Poll.watch</code> should manage the pipelines whenever the underlying files change.</p>
 <pre><code>&lt;&lt; <a id="main" href="#main">main</a> &gt;&gt;=
-    <span class="kw">let</span> htmlPipe <span class="fu">=</span> <span class="kw">if</span> html     <span class="kw">then</span> [Processing.htmlPipeline docsDir] <span class="kw">else</span> []
-        mdPipe   <span class="fu">=</span> <span class="kw">if</span> markdown <span class="kw">then</span> [Processing.mdPipeline   docsDir] <span class="kw">else</span> []
-        codePipe <span class="fu">=</span> <span class="kw">if</span> code     <span class="kw">then</span> [Processing.codePipeline codeDir] <span class="kw">else</span> []
+    <span class="kw">let</span> htmlPipe <span class="fu">=</span> <span class="kw">if</span> html     <span class="kw">then</span> [Processing.htmlPipeline docsDir mCss] <span class="kw">else</span> []
+        mdPipe   <span class="fu">=</span> <span class="kw">if</span> markdown <span class="kw">then</span> [Processing.mdPipeline   docsDir mCss] <span class="kw">else</span> []
+        codePipe <span class="fu">=</span> <span class="kw">if</span> code     <span class="kw">then</span> [Processing.codePipeline codeDir mCss] <span class="kw">else</span> []
         pipes <span class="fu">=</span> htmlPipe <span class="fu">++</span> mdPipe <span class="fu">++</span> codePipe 
         maybeWatch <span class="fu">=</span> <span class="kw">if</span> watching <span class="kw">then</span> Poll.watch <span class="kw">else</span> mapM_
         errors&#39;  <span class="fu">=</span> <span class="kw">if</span> codeDirCheck <span class="kw">then</span> [] <span class="kw">else</span> [<span class="st">&quot;Directory: &quot;</span> <span class="fu">++</span> codeDir <span class="fu">++</span> <span class="st">&quot; does not exist\n&quot;</span>]
@@ -142,5 +142,5 @@ main <span class="fu">=</span> <span class="kw">do</span>
 <pre><code>&lt;&lt; <a id="main" href="#main">main</a> &gt;&gt;=
     <span class="kw">if</span> allErr <span class="fu">/=</span> [] <span class="fu">||</span> (not html <span class="fu">&amp;&amp;</span> not code <span class="fu">&amp;&amp;</span> not markdown) <span class="fu">||</span> files <span class="fu">==</span> []
         <span class="kw">then</span> hPutStrLn stderr ((concat allErr) <span class="fu">++</span> help) 
-        <span class="kw">else</span> (maybeWatch (Processing.build mCss pipes)) files
+        <span class="kw">else</span> (maybeWatch (Processing.build pipes)) files
 </code></pre></body></html>

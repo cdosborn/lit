@@ -82,6 +82,7 @@ options =
        "Display help"
     ]
 
+
 usage = "Usage: lit OPTIONS... FILES..."
 help = "Try:   lit --help"
 
@@ -90,8 +91,6 @@ main = do
  
     -- Parse options, getting a list of option actions
     let (actions, files, errors) = getOpt Permute options args
-    
-    -- Here we thread startOptions through all supplied option actions
     opts <- foldl (>>=) (return startOptions) actions
  
     let Options { optCodeDir  = codeDir
@@ -102,10 +101,8 @@ main = do
                 , optCss      = mCss
                 , optWatch    = watching
                 } = opts 
-
     codeDirCheck <- doesDirectoryExist codeDir
     docsDirCheck <- doesDirectoryExist docsDir
-
     let htmlPipe = if html     then [Processing.htmlPipeline docsDir mCss] else []
         mdPipe   = if markdown then [Processing.mdPipeline   docsDir mCss] else []
         codePipe = if code     then [Processing.codePipeline codeDir mCss] else []
@@ -114,7 +111,6 @@ main = do
         errors'  = if codeDirCheck then [] else ["Directory: " ++ codeDir ++ " does not exist\n"]
         errors'' = if docsDirCheck then [] else ["Directory: " ++ docsDir ++ " does not exist\n"]
         allErr = errors ++ errors' ++ errors''
-
     if allErr /= [] || (not html && not code && not markdown) || files == []
         then hPutStrLn stderr ((concat allErr) ++ help) 
         else (maybeWatch (Processing.build pipes)) files
