@@ -150,9 +150,9 @@ A brief check to ensure that the directories actually exist for the given string
 Based on the conditions, we build part of the pipeline for generating (html/markdown/code). This block aims to gather all the pipes and program errors into lists, which will be iterated over. `maybeWatch` determines whether the files should be directly passed through the pipes via `mapM_` or whether `Poll.watch` should manage the pipelines whenever the underlying files change.
 ```Haskell
 << main >>=
-    let htmlPipe = if html     then [Processing.htmlPipeline docsDir] else []
-        mdPipe   = if markdown then [Processing.mdPipeline   docsDir] else []
-        codePipe = if code     then [Processing.codePipeline codeDir] else []
+    let htmlPipe = if html     then [Processing.htmlPipeline docsDir mCss] else []
+        mdPipe   = if markdown then [Processing.mdPipeline   docsDir mCss] else []
+        codePipe = if code     then [Processing.codePipeline codeDir mCss] else []
         pipes = htmlPipe ++ mdPipe ++ codePipe 
         maybeWatch = if watching then Poll.watch else mapM_
         errors'  = if codeDirCheck then [] else ["Directory: " ++ codeDir ++ " does not exist\n"]
@@ -164,5 +164,5 @@ In the final call of main, either the programs prints [errors](#usage%20messages
 << main >>=
     if allErr /= [] || (not html && not code && not markdown) || files == []
         then hPutStrLn stderr ((concat allErr) ++ help) 
-        else (maybeWatch (Processing.build mCss pipes)) files
+        else (maybeWatch (Processing.build pipes)) files
 ```
