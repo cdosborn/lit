@@ -5,21 +5,18 @@ module Pretty
 
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
+import Data.List (intersperse)
+import Data.Maybe (fromMaybe)
 
 import Cheapskate (markdown, def)
 import Cheapskate.Html
-import Text.Highlighting.Kate (defaultFormatOpts, highlightAs, languagesByFilename)
-import Text.Highlighting.Kate.Types 
 import Text.Blaze (toValue, (!))
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
 import Text.Blaze.Html.Renderer.Text (renderHtml)
 
-import Data.List (intersperse)
-import Data.Maybe (fromMaybe)
-import Data.Monoid (mconcat)
-
 import Types
+import Highlight
 import Util
 
 pretty :: Maybe String -> String -> [Chunk] -> T.Text
@@ -84,8 +81,7 @@ chunkToHtml lang chunk =
 partToHtml :: String -> Part -> H.Html
 partToHtml lang part =
     case part of
-    Code txt -> mconcat $ map (sourceLineToHtml defaultFormatOpts) 
-                        $ highlightAs lang (T.unpack txt)
+    Code txt -> highlight lang txt
     Ref txt -> H.preEscapedToHtml  ("&lt;&lt; " <++> link <++> " &gt;&gt;\n")
         where
             link = "<a href=\"#" <++> escaped <++> "\">" <++> slim <++> "</a>"
@@ -107,40 +103,7 @@ headerToHtml name =  H.preEscapedToHtml $ "&lt;&lt; " <++> link <++> " &gt;&gt;=
 
 escape :: T.Text -> T.Text
 escape txt =
-    T.pack $ concat $ map (\c -> if c == ' ' then "%20" else [c]) $ T.unpack txt
+    T.pack $ concatMap (\c -> if c == ' ' then "%20" else [c]) $ T.unpack txt
 
 headerName :: T.Text -> T.Text
 headerName name = "<< " <++> (T.strip name) <++> " >>="
-
--- The methods below were heavily derived from John MacFarlane's highlighting-kate source
-tokenToHtml :: FormatOptions -> Token -> H.Html
-tokenToHtml _ (NormalTok, txt)  = H.toHtml txt
-tokenToHtml opts (toktype, txt) =
-  if titleAttributes opts
-     then sp ! A.title (toValue $ show toktype)
-     else sp
-   where sp = H.span ! A.class_ (toValue $ short toktype) $ H.toHtml txt
-
-sourceLineToHtml :: FormatOptions -> SourceLine -> H.Html
-sourceLineToHtml opts line = mconcat $ (map (tokenToHtml opts) line) ++ [(H.toHtml ("\n" :: String))]
-
-short :: TokenType -> T.Text
-short KeywordTok        = "kw"
-short DataTypeTok       = "dt"
-short DecValTok         = "dv"
-short BaseNTok          = "bn"
-short FloatTok          = "fl"
-short CharTok           = "ch"
-short StringTok         = "st"
-short CommentTok        = "co"
-short OtherTok          = "ot"
-short AlertTok          = "al"
-short FunctionTok       = "fu"
-short RegionMarkerTok   = "re"
-short ErrorTok          = "er"
-short NormalTok         = ""
-
-getLang path = 
-    case languagesByFilename path of
-    [] -> ""
-    lst -> head lst
