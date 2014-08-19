@@ -9,29 +9,30 @@ import qualified Control.Concurrent as C
 import System.IO.Error
  
 watch :: (String -> IO ()) -> [String] -> IO ()
-watch fun fs = do 
+watch fun fs = 
+    let 
+        wait = C.threadDelay 1000000
+    in do 
     putStrLn "starting.."
     mapM_ fun fs
-     -- total microseconds for each file to cause a 1 sec delay per loop
-    let delay = 1000000 `div` (length fs)
-    forever $ (C.threadDelay 1000000 >> mapM_ (onDiff fun delay) fs)
+    forever $ (wait >> mapM_ (onChange fun) fs)
 
-onDiff :: (String -> IO ()) -> Int -> String -> IO ()
-onDiff fun delay file = do
-    modified <- errorHandler (getModificationTime file) 
+onChange :: (String -> IO ()) -> String -> IO ()
+onChange fun file = do
+    modified <- retryAtMost 10 (getModificationTime file) 
     curTime <- getCurrentTime 
     let diff = (diffUTCTime curTime modified)
-    if diff < 2 then fun file >> C.threadDelay delay else return ()
+    if diff < 2 then (putStrLn "ran" >> fun file) else return ()
  
 
 -- a really conservative check to prevent file
 -- "inavailability" due to reading modification bits
-errorHandler = errorHandlerNTimes 10
-
-errorHandlerNTimes 0 mnd = catchIOError mnd (\e -> ioError e)
-errorHandlerNTimes times mnd = {-(putStrLn $ show times) >>-} catchIOError mnd handle 
-    where   
-        handle e =
-            if isDoesNotExistError e 
-            then C.threadDelay 50000 >> errorHandlerNTimes (times - 1) mnd
+retryAtMost 0 monad = catchIOError monad (\e -> ioError e)
+retryAtMost times monad = 
+    let
+        handle e = if isDoesNotExistError e 
+            then C.threadDelay 50000 >> retryAtMost (times - 1) monad
             else ioError e
+    in 
+        catchIOError monad handle 
+
