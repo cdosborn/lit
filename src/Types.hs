@@ -11,11 +11,6 @@ isDef chunk =
     Def _ _ _ -> True
     Prose _ -> False
 
-getProseText prose =
-    case prose of
-    Prose txt -> txt
-    _ -> error "cannot retrieve txt, not a prose"
-
 getName chunk =
     case chunk of
     Def _ name _ -> name
