@@ -17,13 +17,13 @@ import Parse
 import Pretty
 import Types
 
-build mCss pipes file =
+build pipes file =
     let fileName = dropExtension $ takeFileName file
         lang = getLang fileName
     in do
         stream <- readFile file
         encoded <- return $ encode stream 
-        mapM_ (\f -> f mCss lang fileName encoded) pipes >> return ()
+        mapM_ (\f -> f lang fileName encoded) pipes >> return ()
 
 htmlPipeline = (\dir css lang path enc -> writeFile ((ensureTrailingSlash dir) ++ path ++ ".html") $ pretty lang css path enc)
 mdPipeline = (\dir css lang path enc -> writeFile ((ensureTrailingSlash dir) ++ path ++ ".md") $ (mark lang) enc)

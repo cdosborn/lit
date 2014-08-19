@@ -29,6 +29,9 @@ pretty lang maybeCss name chunks =
 mark :: String -> [Chunk] -> T.Text
 mark lang chunks = T.concat $ map (chunkToMarkdown lang) chunks
 
+(<++>) :: T.Text -> T.Text -> T.Text
+(<++>) = T.append
+
 chunkToMarkdown lang chunk =
     case chunk of
     Prose text  -> text
@@ -38,10 +41,9 @@ chunkToMarkdown lang chunk =
             header = headerName name
             mdParts = T.concat $ map (partToText lang) parts
         in 
-            "```" `T.append` lang'   `T.append` 
-            "\n"  `T.append` header  `T.append` 
-            "\n"  `T.append` mdParts `T.append` "```\n"
-
+            "```" <++> lang'   <++> 
+            "\n"  <++> header  <++> 
+            "\n"  <++> mdParts <++> "```\n"
 
 preface :: Maybe String -> String -> H.Html -> H.Html
 preface maybeCss fileName bodyHtml =
@@ -69,16 +71,17 @@ chunkToHtml lang chunk =
         let 
             header = headerToHtml name
             htmlParts = H.preEscapedToHtml $ map (partToHtml lang) parts
-        in H.pre $ H.code $ (header >> htmlParts)
+        in 
+            H.pre $ H.code $ (header >> htmlParts)
 
 partToHtml :: String -> Part -> H.Html
 partToHtml lang part =
     case part of
     Code txt -> mconcat $ map (sourceLineToHtml defaultFormatOpts) 
                         $ highlightAs lang (T.unpack txt)
-    Ref txt -> H.preEscapedToHtml  ("&lt;&lt; " `T.append` link `T.append` " &gt;&gt;\n")
+    Ref txt -> H.preEscapedToHtml  ("&lt;&lt; " <++> link <++> " &gt;&gt;\n")
         where
-            link = "<a href=\"#" `T.append` escaped `T.append` "\">" `T.append` slim `T.append` "</a>"
+            link = "<a href=\"#" <++> escaped <++> "\">" <++> slim <++> "</a>"
             slim = T.strip txt
             escaped = escape slim 
 
@@ -86,12 +89,12 @@ partToText :: String -> Part -> T.Text
 partToText lang part =
     case part of
     Code txt -> txt
-    Ref txt -> ("<< " `T.append` (T.strip txt) `T.append` " >>\n")
+    Ref txt -> ("<< " <++> (T.strip txt) <++> " >>\n")
 
 headerToHtml :: T.Text -> H.Html
-headerToHtml name =  H.preEscapedToHtml $ "&lt;&lt; " `T.append` link `T.append` " &gt;&gt;=\n" 
+headerToHtml name =  H.preEscapedToHtml $ "&lt;&lt; " <++> link <++> " &gt;&gt;=\n" 
     where
-        link = "<a id=\"" `T.append` escaped `T.append` "\" href=\"#" `T.append` escaped `T.append` "\">" `T.append` slim `T.append` "</a>"
+        link = "<a id=\"" <++> escaped <++> "\" href=\"#" <++> escaped <++> "\">" <++> slim <++> "</a>"
         slim = T.strip name
         escaped = escape slim 
 
@@ -100,7 +103,7 @@ escape txt =
     T.pack $ concat $ map (\c -> if c == ' ' then "%20" else [c]) $ T.unpack txt
 
 headerName :: T.Text -> T.Text
-headerName name = "<< " `T.append` (T.strip name) `T.append` " >>="
+headerName name = "<< " <++> (T.strip name) <++> " >>="
 
 -- The methods below were heavily derived from John MacFarlane's highlighting-kate source
 tokenToHtml :: FormatOptions -> Token -> H.Html
