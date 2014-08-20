@@ -104,6 +104,7 @@ main = do
 
     codeDirCheck <- doesDirectoryExist codeDir
     docsDirCheck <- doesDirectoryExist docsDir
+
     let htmlPipe = if html     then [Process.htmlPipeline docsDir mCss] else []
         mdPipe   = if markdown then [Process.mdPipeline   docsDir mCss] else []
         codePipe = if code     then [Process.codePipeline codeDir mCss] else []
