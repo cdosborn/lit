@@ -48,7 +48,6 @@ part indent =
     try (string indent >> varLine) <|> 
     try (string indent >> defLine) <|> 
     (grabLine >>= (\extra -> return (Code $ extra)))
-  --(newline >>= (\nl -> return (Code $ T.singleton nl)))
 
 varLine :: Parser Part
 varLine = do
@@ -86,6 +85,6 @@ title = do
 
 notDelim = noneOf ">="
 ws :: Parser Char
-ws = char ' ' <|> char '\t'  -- consume a whitespace char
+ws = char ' ' <|> char '\t'
 eol :: Parser Char
 eol = char '\n' <|> char '\r'

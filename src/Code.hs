@@ -1,34 +1,14 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Processing 
-( build
-, htmlPipeline
-, mdPipeline
-, codePipeline ) where
-
-import Prelude hiding (readFile, writeFile)
-import Data.Text.IO (writeFile, readFile)
-import System.FilePath.Posix (takeFileName, dropExtension)
+module Code ( generate ) where
 
 import Data.List (partition)
 import qualified Data.HashMap.Strict as Map
 import qualified Data.Text as T
 
-import Parse
-import Pretty
 import Types
-import Util
-
-build pipes file =
-    let 
-        fileName = dropExtension $ takeFileName file
-    in do
-        stream <- readFile file
-        encoded <- return $ encode stream 
-        mapM_ (\f -> f fileName encoded) pipes >> return ()
-
-htmlPipeline = (\dir css name enc -> writeFile ((ensureTrailingSlash dir) ++ name ++ ".html") $ pretty css name enc)
-mdPipeline = (\dir css name enc -> writeFile ((ensureTrailingSlash dir) ++ name ++ ".md") $ mark name enc)
-codePipeline = (\dir css name enc -> writeFile ((ensureTrailingSlash dir) ++ name) $ T.strip $ expand $ merge enc)
+  
+generate :: [Chunk] -> T.Text
+generate = expand . merge
 
 -- merge together definitions with the same name
 merge :: [Chunk] -> [Chunk]

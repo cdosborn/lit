@@ -1,21 +1,11 @@
-lit
----
+lookfor HashMap alternative (requires unordered containers)
 
-Processing
-----------
-    lookfor HashMap alternative (requires unordered containers)
-    clean up pipeline funs
+treat a line of pure ws as part of code chunk, unless followed by title
 
-    hacky fix with T.strip in expandParts (consolidate)
+hacky fix with T.strip in expandParts (consolidate)
 
-Pretty
-------
-    add in custom tags for lit macros
-    lines with spaces (after code chunks) shouldn't show 
+add in custom tags for lit macros
 
-lit.cabal
---------
+lines with spaces (after code chunks) shouldn't show 
 
-Parse
------
-    titles must be followed by \n
+titles must be followed by \n

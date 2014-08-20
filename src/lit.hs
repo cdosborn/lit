@@ -7,7 +7,7 @@ import System.IO
 import System.Exit
 import Control.Applicative
 
-import Processing
+import Process
 import Poll
 
 data Options = Options  { optCodeDir  :: String 
@@ -101,11 +101,12 @@ main = do
                 , optCss      = mCss
                 , optWatch    = watching
                 } = opts 
+
     codeDirCheck <- doesDirectoryExist codeDir
     docsDirCheck <- doesDirectoryExist docsDir
-    let htmlPipe = if html     then [Processing.htmlPipeline docsDir mCss] else []
-        mdPipe   = if markdown then [Processing.mdPipeline   docsDir mCss] else []
-        codePipe = if code     then [Processing.codePipeline codeDir mCss] else []
+    let htmlPipe = if html     then [Process.htmlPipeline docsDir mCss] else []
+        mdPipe   = if markdown then [Process.mdPipeline   docsDir mCss] else []
+        codePipe = if code     then [Process.codePipeline codeDir mCss] else []
         pipes = htmlPipe ++ mdPipe ++ codePipe 
         maybeWatch = if watching then Poll.watch else mapM_
         errors'  = if codeDirCheck then [] else ["Directory: " ++ codeDir ++ " does not exist\n"]
@@ -114,4 +115,4 @@ main = do
 
     if allErr /= [] || (not html && not code && not markdown) || files == []
         then hPutStrLn stderr ((concat allErr) ++ help) 
-        else (maybeWatch (Processing.build pipes)) files
+        else (maybeWatch (Process.process pipes)) files

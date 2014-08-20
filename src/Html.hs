@@ -1,26 +1,22 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Pretty 
-( pretty
-, mark ) where
+module Html (generate) where
 
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
-import Data.List (intersperse)
 import Data.Maybe (fromMaybe)
 
-import Cheapskate (markdown, def)
-import Cheapskate.Html
 import Text.Blaze (toValue, (!))
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
 import Text.Blaze.Html.Renderer.Text (renderHtml)
+import Cheapskate (markdown, def)
+import Cheapskate.Html
 
-import Types
 import Highlight
-import Util
+import Types
 
-pretty :: Maybe String -> String -> [Chunk] -> T.Text
-pretty maybeCss name chunks = 
+generate :: Maybe String -> String -> [Chunk] -> T.Text
+generate maybeCss name chunks = 
     let 
         lang = getLang name
         body = H.preEscapedToHtml $ map (chunkToHtml lang) chunks
@@ -28,26 +24,8 @@ pretty maybeCss name chunks =
     in 
         TL.toStrict $ renderHtml doc
 
-mark :: String -> [Chunk] -> T.Text
-mark name chunks = 
-    let 
-        lang = getLang name
-        toMarkDown = chunkToMarkdown lang
-    in
-        T.concat $ map toMarkDown chunks
-
-chunkToMarkdown lang chunk =
-    case chunk of
-    Prose text  -> text
-    Def _ name parts -> 
-        let 
-            lang' = T.pack lang
-            header = headerName name
-            mdParts = T.concat $ map (partToText lang) parts
-        in 
-            "```" <++> lang'   <++> 
-            "\n"  <++> header  <++> 
-            "\n"  <++> mdParts <++> "```\n"
+(<++>) :: T.Text -> T.Text -> T.Text
+(<++>) = T.append
 
 preface :: Maybe String -> String -> H.Html -> H.Html
 preface maybeCss fileName bodyHtml =
@@ -78,6 +56,13 @@ chunkToHtml lang chunk =
         in 
             H.pre $ H.code $ (header >> htmlParts)
 
+headerToHtml :: T.Text -> H.Html
+headerToHtml name =  H.preEscapedToHtml $ "&lt;&lt; " <++> link <++> " &gt;&gt;=\n" 
+    where
+        link = "<a id=\"" <++> escaped <++> "\" href=\"#" <++> escaped <++> "\">" <++> slim <++> "</a>"
+        slim = T.strip name
+        escaped = escape slim 
+
 partToHtml :: String -> Part -> H.Html
 partToHtml lang part =
     case part of
@@ -88,22 +73,6 @@ partToHtml lang part =
             slim = T.strip txt
             escaped = escape slim 
 
-partToText :: String -> Part -> T.Text
-partToText lang part =
-    case part of
-    Code txt -> txt
-    Ref txt -> ("<< " <++> (T.strip txt) <++> " >>\n")
-
-headerToHtml :: T.Text -> H.Html
-headerToHtml name =  H.preEscapedToHtml $ "&lt;&lt; " <++> link <++> " &gt;&gt;=\n" 
-    where
-        link = "<a id=\"" <++> escaped <++> "\" href=\"#" <++> escaped <++> "\">" <++> slim <++> "</a>"
-        slim = T.strip name
-        escaped = escape slim 
-
 escape :: T.Text -> T.Text
 escape txt =
     T.pack $ concatMap (\c -> if c == ' ' then "%20" else [c]) $ T.unpack txt
-
-headerName :: T.Text -> T.Text
-headerName name = "<< " <++> (T.strip name) <++> " >>="
