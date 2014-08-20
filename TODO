@@ -4,7 +4,7 @@ treat a line of pure ws as part of code chunk, unless followed by title
 
 hacky fix with T.strip in expandParts (consolidate)
 
-add in custom tags for lit macros
+add in custom tags for lit macros (spans etc)
 
 lines with spaces (after code chunks) shouldn't show 
 
