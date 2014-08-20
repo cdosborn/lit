@@ -16,37 +16,29 @@ import Html
 import Markdown
 import Types
 
-process pipes file =
-    let 
+process pipes file = do 
+    stream <- readFile file
+    encoded <- return $ encode stream 
+    mapM_ (\f -> f fileName encoded) pipes >> return ()
+    where
         fileName = dropExtension $ takeFileName file
-    in do
-        stream <- readFile file
-        encoded <- return $ encode stream 
-        mapM_ (\f -> f fileName encoded) pipes >> return ()
 
-htmlPipeline dir css name enc = 
-    let 
+htmlPipeline dir css name enc = writeFile path output
+    where 
         path = (ensureTrailingSlash dir) ++ name ++ ".html"
         output = Html.generate css name enc
-    in 
-        writeFile path output
 
-mdPipeline dir css name enc = 
-    let
+mdPipeline dir css name enc = writeFile path output
+    where
         path = (ensureTrailingSlash dir) ++ name ++ ".md"
         output = Markdown.generate name enc
-    in
-        writeFile path output
 
-codePipeline dir css name enc = 
-    let
+codePipeline dir css name enc = writeFile path output
+    where
         path = (ensureTrailingSlash dir) ++ name
         output = Code.generate enc
-    in
-        writeFile path output
 
 ensureTrailingSlash dir = 
     if last dir == '/'
     then dir
     else dir ++ "/"
-
