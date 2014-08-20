@@ -22,7 +22,7 @@ import System.IO
 import System.Exit
 import Control.Applicative
 
-import Processing
+import Process
 import Poll
 ```
 `types` defines the supported command line options and functions used to handle these options
@@ -150,9 +150,9 @@ A brief check to ensure that the directories actually exist for the given string
 Based on the conditions, we build part of the pipeline for generating (html/markdown/code). This block aims to gather all the pipes and program errors into lists, which will be iterated over. `maybeWatch` determines whether the files should be directly passed through the pipes via `mapM_` or whether `Poll.watch` should manage the pipelines whenever the underlying files change.
 ```Haskell
 << main >>=
-    let htmlPipe = if html     then [Processing.htmlPipeline docsDir mCss] else []
-        mdPipe   = if markdown then [Processing.mdPipeline   docsDir mCss] else []
-        codePipe = if code     then [Processing.codePipeline codeDir mCss] else []
+    let htmlPipe = if html     then [Process.htmlPipeline docsDir mCss] else []
+        mdPipe   = if markdown then [Process.mdPipeline   docsDir mCss] else []
+        codePipe = if code     then [Process.codePipeline codeDir mCss] else []
         pipes = htmlPipe ++ mdPipe ++ codePipe 
         maybeWatch = if watching then Poll.watch else mapM_
         errors'  = if codeDirCheck then [] else ["Directory: " ++ codeDir ++ " does not exist\n"]
@@ -163,6 +163,6 @@ In the final call of main, either the programs prints [errors](#usage%20messages
 ```Haskell
 << main >>=
     if allErr /= [] || (not html && not code && not markdown) || files == []
-        then hPutStrLn stderr ((concat allErr) ++ help) 
-        else (maybeWatch (Processing.build pipes)) files
+    then hPutStrLn stderr ((concat allErr) ++ help) 
+    else (maybeWatch (Process.process pipes)) files
 ```
