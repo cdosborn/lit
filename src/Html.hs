@@ -59,9 +59,9 @@ chunkToHtml lang chunk =
 headerToHtml :: T.Text -> H.Html
 headerToHtml name =  H.preEscapedToHtml $ "&lt;&lt; " <++> link <++> " &gt;&gt;=\n" 
     where
-        link = "<a id=\"" <++> escaped <++> "\" href=\"#" <++> escaped <++> "\">" <++> slim <++> "</a>"
+        link = "<a id=\"" <++> underscored <++> "\" href=\"#" <++> underscored <++> "\">" <++> slim <++> "</a>"
         slim = T.strip name
-        escaped = escape slim 
+        underscored = underscore slim
 
 partToHtml :: String -> Part -> H.Html
 partToHtml lang part =
@@ -69,10 +69,10 @@ partToHtml lang part =
     Code txt -> highlight lang txt
     Ref txt -> H.preEscapedToHtml  ("&lt;&lt; " <++> link <++> " &gt;&gt;\n")
         where
-            link = "<a href=\"#" <++> escaped <++> "\">" <++> slim <++> "</a>"
+            link = "<a href=\"#" <++> underscored <++> "\">" <++> slim <++> "</a>"
             slim = T.strip txt
-            escaped = escape slim 
+            underscored = underscore slim 
 
-escape :: T.Text -> T.Text
-escape txt =
-    T.pack $ concatMap (\c -> if c == ' ' then "%20" else [c]) $ T.unpack txt
+underscore :: T.Text -> T.Text
+underscore txt =
+    T.pack $ concatMap (\c -> if c == ' ' then "_" else [c]) $ T.unpack txt
