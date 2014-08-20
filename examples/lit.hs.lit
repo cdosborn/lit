@@ -20,7 +20,7 @@ A high-level overview of `lit.hs`:
     import System.Exit
     import Control.Applicative
     
-    import Processing
+    import Process
     import Poll
 
 
