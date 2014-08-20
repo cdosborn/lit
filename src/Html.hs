@@ -19,7 +19,8 @@ generate :: Maybe String -> String -> [Chunk] -> T.Text
 generate maybeCss name chunks = 
     let 
         lang = getLang name
-        body = H.preEscapedToHtml $ map (chunkToHtml lang) chunks
+        mergedProse = simplify chunks -- adjacent Prose combined to one prose
+        body = H.preEscapedToHtml $ map (chunkToHtml lang) mergedProse
         doc = preface maybeCss name body
     in 
         TL.toStrict $ renderHtml doc
@@ -55,6 +56,20 @@ chunkToHtml lang chunk =
             htmlParts = H.preEscapedToHtml $ map (partToHtml lang) parts
         in 
             H.pre $ H.code $ (header >> htmlParts)
+
+-- many consecutive Proses are reduced to a single Prose
+simplify :: [Chunk] -> [Chunk]
+simplify [] = []
+simplify lst =
+    let 
+        (defs, ps) = span isDef lst
+        (ps', rest) = break isDef ps
+    in case ps' of
+        [] -> defs ++ rest
+        _ -> defs ++ [mergeProse ps'] ++ (simplify rest)
+
+mergeProse :: [Chunk] -> Chunk
+mergeProse chunks = Prose $ T.concat $ map getProseText chunks
 
 headerToHtml :: T.Text -> H.Html
 headerToHtml name =  H.preEscapedToHtml $ "&lt;&lt; " <++> link <++> " &gt;&gt;=\n" 
