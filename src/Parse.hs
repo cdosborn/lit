@@ -31,13 +31,20 @@ def = do
 part :: String -> Parser Part
 part indent = 
     try (string indent >> varLine) <|> 
-    (many ws >> grabLine >>= \extra -> return $ Code extra)
+    try (string indent >> defLine) <|>
+    (grabLine >>= \extra -> return $ Code extra)
 
 varLine :: Parser Part
 varLine = do
     name <- packM =<< between (string "<<") (string ">>") (many notDelim)
     newline
     return $ Ref name
+
+defLine :: Parser Part
+defLine = do
+    line <- grabLine
+    return $ Code line
+
 
 endDef :: String -> Parser ()
 endDef indent = try $ do { skipMany newline; notFollowedBy (string indent) <|> (lookAhead title >> parserReturn ()) }

@@ -8,11 +8,11 @@ import qualified Data.Text as T
 import Types
   
 generate :: [Chunk] -> T.Text
-generate = expand . merge
+generate = expand . merge . (filter isDef)
 
 -- merge together definitions with the same name
 merge :: [Chunk] -> [Chunk]
-merge chunks = mergeAux [] (filter isDef chunks)
+merge = mergeAux [] 
 mergeAux ans [] = ans
 mergeAux ans (next:rest) = 
     let 
