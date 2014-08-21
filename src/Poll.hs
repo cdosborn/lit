@@ -22,17 +22,13 @@ onChange fun file = do
     modified <- retryAtMost 10 (getModificationTime file) 
     curTime <- getCurrentTime 
     let diff = (diffUTCTime curTime modified)
-    if diff < 2 then (putStrLn "ran" >> fun file) else return ()
+    if diff < 2 then fun file else return ()
  
-
--- a really conservative check to prevent file
--- "inavailability" due to reading modification bits
-retryAtMost 0 monad = catchIOError monad (\e -> ioError e)
-retryAtMost times monad = 
+retryAtMost 1 action = catchIOError action (\e -> ioError e)
+retryAtMost times action = 
     let
         handle e = if isDoesNotExistError e 
-            then C.threadDelay 50000 >> retryAtMost (times - 1) monad
+            then C.threadDelay 50000 >> retryAtMost (times - 1) action
             else ioError e
     in 
-        catchIOError monad handle 
-
+        catchIOError action handle 
