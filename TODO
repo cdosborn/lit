@@ -9,3 +9,5 @@ add in custom tags for lit macros (spans etc)
 lines with spaces (after code chunks) shouldn't show 
 
 titles must be followed by \n
+
+improve parsing with `part` not efficient with nested try
