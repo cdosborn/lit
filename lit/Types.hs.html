@@ -1,0 +1,56 @@
+<!DOCTYPE HTML>
+<html><head><title>Types.hs</title><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="../css/default.css"></head><body><h1><a href="root.html">/ </a>Types.hs - the types for a parsed <code>lit</code> file</h1>
+<p>Types defines container types for storing a parsed <code>lit</code> file.</p>
+<p>An overview of the file:</p>
+<pre><code>&lt;&lt; <a id="*" href="#*">*</a> &gt;&gt;=
+&lt;&lt; <a href="#module_definition">module definition</a> &gt;&gt;
+&lt;&lt; <a href="#datatypes">datatypes</a> &gt;&gt;
+&lt;&lt; <a href="#access_methods_for_types">access methods for types</a> &gt;&gt;
+</code></pre><p>Types is a module imported by most the other modules in <code>lit</code>, because it defines
+most of the core data types used.</p>
+<pre><code>&lt;&lt; <a id="module_definition" href="#module_definition">module definition</a> &gt;&gt;=
+<span class="kw">module</span> <span class="dt">Types</span> <span class="kw">where</span>
+
+<span class="kw">import </span><span class="dt">Data.Text</span> 
+</code></pre><p>In <a href="Parse.hs.html">Parse.hs</a>, <code>lit</code> transforms files into a <code>[Chunk]</code>. Each
+output module (<a href="Html.hs.lit">Html</a>, <a href="Code.hs.lit">Code</a>, and <a href="Markdown.hs.lit">Markdown</a>)
+accepts a <code>[Chunk]</code> before writing their respective output.</p>
+<p>The <code>Def</code> constructor represents the code chunk, storing the line no. and chunk name.
+Each code chunk stores a <code>[Part]</code>, which represent lines of code or macro references
+of the form <code>&lt;&lt; name &gt;&gt;</code>.</p>
+<pre><code>&lt;&lt; <a id="datatypes" href="#datatypes">datatypes</a> &gt;&gt;=
+<span class="kw">data</span> <span class="dt">Chunk</span> <span class="fu">=</span> <span class="dt">Def</span> <span class="dt">Int</span> <span class="dt">Text</span> [<span class="dt">Part</span>] <span class="fu">|</span> <span class="dt">Prose</span> <span class="dt">Text</span> <span class="kw">deriving</span> (<span class="dt">Show</span>, <span class="dt">Eq</span>)
+<span class="kw">data</span> <span class="dt">Part</span> <span class="fu">=</span> <span class="dt">Code</span> <span class="dt">Text</span> <span class="fu">|</span> <span class="dt">Ref</span> <span class="dt">Text</span> <span class="kw">deriving</span> (<span class="dt">Show</span>, <span class="dt">Eq</span>)
+<span class="kw">type</span> <span class="dt">Program</span> <span class="fu">=</span> [<span class="dt">Chunk</span>]
+</code></pre><p>A boolean check to differentiate between a <code>Prose</code> or <code>Def</code> chunk.</p>
+<pre><code>&lt;&lt; <a id="access_methods_for_types" href="#access_methods_for_types">access methods for types</a> &gt;&gt;=
+isDef chunk <span class="fu">=</span>
+    <span class="kw">case</span> chunk <span class="kw">of</span>
+    <span class="dt">Def</span> _ _ _ <span class="ot">-&gt;</span> <span class="dt">True</span>
+    <span class="dt">Prose</span> _ <span class="ot">-&gt;</span> <span class="dt">False</span>
+</code></pre><p>Retrieve the macro name.</p>
+<pre><code>&lt;&lt; <a id="access_methods_for_types" href="#access_methods_for_types">access methods for types</a> &gt;&gt;=
+getName chunk <span class="fu">=</span>
+    <span class="kw">case</span> chunk <span class="kw">of</span>
+    <span class="dt">Def</span> _ name _ <span class="ot">-&gt;</span> name
+    _ <span class="ot">-&gt;</span> error <span class="st">&quot;cannot retrieve name, not a def&quot;</span>
+</code></pre><p>Retrieve the list of code lines and macro references.</p>
+<pre><code>&lt;&lt; <a id="access_methods_for_types" href="#access_methods_for_types">access methods for types</a> &gt;&gt;=
+getParts chunk <span class="fu">=</span>
+    <span class="kw">case</span> chunk <span class="kw">of</span>
+    <span class="dt">Def</span> _ _ parts <span class="ot">-&gt;</span> parts
+    _ <span class="ot">-&gt;</span> error <span class="st">&quot;cannot retrieve parts, not a def&quot;</span>
+</code></pre><p>Retrieve the line number where the <code>Def</code> was defined
+in the <code>lit</code> file.</p>
+<pre><code>&lt;&lt; <a id="access_methods_for_types" href="#access_methods_for_types">access methods for types</a> &gt;&gt;=
+getLineNo chunk <span class="fu">=</span>
+    <span class="kw">case</span> chunk <span class="kw">of</span>
+    <span class="dt">Def</span> line _ _ <span class="ot">-&gt;</span> line
+    _ <span class="ot">-&gt;</span> error <span class="st">&quot;cannot retrieve line number, not a def&quot;</span>
+</code></pre><p>Retrieve the text stored in a <code>Prose</code>.</p>
+<pre><code>&lt;&lt; <a id="access_methods_for_types" href="#access_methods_for_types">access methods for types</a> &gt;&gt;=
+getProseText chunk <span class="fu">=</span> 
+    <span class="kw">case</span> chunk <span class="kw">of</span>
+    <span class="dt">Prose</span> txt <span class="ot">-&gt;</span> txt
+    _ <span class="ot">-&gt;</span> error <span class="st">&quot;cannot retrieve text, not a prose&quot;</span>
+</code></pre></body></html>

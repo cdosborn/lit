@@ -1,0 +1,26 @@
+/* Lit - customize code highlighting
+   
+   Lit generates html where the code blocks can be styled 
+   based on preference. Below is a sample loosely derived 
+   from Pygments, for more defaults: 
+
+   https://github.com/jgm/highlighting-kate/tree/master/css
+
+   or checkout examples/default.css 
+
+*/
+
+/* Pygments */
+code span.kw { color: #007020; font-weight: bold; }
+code span.dt { color: #902000; }
+code span.dv { color: #40a070; }
+code span.bn { color: #40a070; }
+code span.fl { color: #40a070; }
+code span.ch { color: #4070a0; }
+code span.st { color: #4070a0; }
+code span.co { color: #60a0b0; font-style: italic; }
+code span.ot { color: #007020; }
+code span.al { color: red; font-weight: bold; }
+code span.fu { color: #06287e; }
+code span.re { }
+code span.er { color: red; font-weight: bold; }

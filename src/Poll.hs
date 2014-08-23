@@ -7,7 +7,7 @@ import Data.Time.Calendar
 import Control.Monad (forever)
 import qualified Control.Concurrent as C
 import System.IO.Error
- 
+
 watch :: (String -> IO ()) -> [String] -> IO ()
 watch fun fs = 
     let 
@@ -23,7 +23,7 @@ onChange fun file = do
     curTime <- getCurrentTime 
     let diff = (diffUTCTime curTime modified)
     if diff < 2 then fun file else return ()
- 
+
 retryAtMost 1 action = catchIOError action (\e -> ioError e)
 retryAtMost times action = 
     let
@@ -32,3 +32,5 @@ retryAtMost times action =
             else ioError e
     in 
         catchIOError action handle 
+
+

@@ -1,0 +1,13 @@
+<!DOCTYPE HTML>
+<html><head><title>syntax</title><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="../css/default.css"></head><body><h1><a href="root.html">/ </a>syntax</h1>
+<p><code>lit</code> only interprets two valid constructs:</p>
+<p>A macro definition: <code>&lt;&lt; ... &gt;&gt;=</code> and a macro reference: <code>&lt;&lt; ... &gt;&gt;</code></p>
+<p>Any lines sharing or to the right of the initial indent, are included in the definition.
+A macro definition is where the actual source code is placed. It can also contain macro references.</p>
+<p>It is also possible to extend a macro definition by creating a
+macro definition with the same name later in the literate file.</p>
+<p>When <code>lit</code> attempts to generate the source code from the literate file, it expands each
+macro reference with the corresponding macro definition. By convention, <code>lit</code> starts at the root macro
+definition <code>&lt;&lt; * &gt;&gt;=</code>. If it is not included, <code>lit</code> assumes the first macro definition as the index.</p>
+<p>For a simple tutorial, follow <a href="hello.html">here</a>.</p>
+</body></html>

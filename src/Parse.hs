@@ -28,6 +28,20 @@ def = do
     parts <- manyTill (part indent) $ endDef indent
     return $ Def lineNum header parts
 
+endDef :: String -> Parser ()
+endDef indent = try $ do { skipMany newline; notFollowedBy (string indent) <|> (lookAhead title >> parserReturn ()) }
+
+-- Returns (indent, macro-name, line-no)
+title :: Parser (String, T.Text, Int)
+title = do
+    pos <- getPosition
+    indent <- many ws
+    name <- packM =<< between (string "<<") (string ">>=") (many notDelim)
+    newline
+    return $ (indent, T.strip name, sourceLine pos)
+
+notDelim = noneOf ">="
+
 part :: String -> Parser Part
 part indent = 
     try (string indent >> varLine) <|> 
@@ -45,31 +59,17 @@ defLine = do
     line <- grabLine
     return $ Code line
 
-
-endDef :: String -> Parser ()
-endDef indent = try $ do { skipMany newline; notFollowedBy (string indent) <|> (lookAhead title >> parserReturn ()) }
-
 grabLine :: Parser T.Text
 grabLine = do 
     line <- many (noneOf "\n\r")
     last <- newline
     return $ T.pack $ line ++ [last]
 
-packM str = return $ T.pack str
-
--- Pre: Assumes that parser is looking at a fresh line with a macro defn
--- Post: Returns (indent, macro-name, line-no)
-title :: Parser (String, T.Text, Int)
-title = do
-    pos <- getPosition
-    indent <- many ws
-    name <- fmap T.pack $ between (string "<<") (string ">>=") (many notDelim)
-    newline
-    return $ (indent, T.strip name, sourceLine pos)
-
-notDelim = noneOf ">="
 ws :: Parser Char
 ws = char ' ' <|> char '\t'
+
+
+packM str = return $ T.pack str
 
 textP :: Parsec T.Text () T.Text ->  T.Text -> T.Text
 textP p txt =
@@ -82,3 +82,5 @@ chunkP p txt =
     case (parse p "" txt) of 
     Left err -> Nothing
     Right result -> Just result
+
+

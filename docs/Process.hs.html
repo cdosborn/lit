@@ -1,0 +1,75 @@
+<!DOCTYPE HTML>
+<html><head><title>Process.hs</title><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="css/default.css"></head><body><h1>Process.hs - links <code>lit</code>'s command line interface and file generation</h1>
+<p>Process unifies the different ways that <code>lit</code> can produce files. Here are the goals:</p>
+<ol>
+<li>Parse a file into a data structure</li>
+<li>Pass the data structure through pipelines (Html, Code, Markdown)</li>
+<li>Write the output to files</li>
+</ol>
+<p>An overview of the file:</p>
+<pre><code>&lt;&lt; <a id="*" href="#*">*</a> &gt;&gt;=
+&lt;&lt; <a href="#define_Process_module">define Process module</a> &gt;&gt;
+&lt;&lt; <a href="#import_modules">import modules</a> &gt;&gt;
+&lt;&lt; <a href="#process_a_single_file">process a single file</a> &gt;&gt;
+&lt;&lt; <a href="#helper_functions">helper functions</a> &gt;&gt;
+</code></pre><p>Process exports the pipelines so they can be <em>preconfigured</em>. In lit.hs, the pipelines are curried with the output directory corresponding to their type, and with the optional css path. The <code>process</code> function depends on being called with preconfigured pipes.</p>
+<pre><code>&lt;&lt; <a id="define_Process_module" href="#define_Process_module">define Process module</a> &gt;&gt;=
+<span class="ot">{-# LANGUAGE OverloadedStrings #-}</span>
+<span class="kw">module</span> <span class="dt">Process</span>
+( process
+, htmlPipeline
+, mdPipeline
+, codePipeline ) <span class="kw">where</span>
+</code></pre><p>Besides the reading and writing file utilities, each output format is contained in a module which specifies a <code>generate</code> function. Ex. <code>Html.generate</code> renders the parsed <code>.lit</code> file as <code>Text</code>.</p>
+<pre><code>&lt;&lt; <a id="import_modules" href="#import_modules">import modules</a> &gt;&gt;=
+<span class="kw">import </span><span class="dt">Prelude</span> <span class="kw">hiding</span> (readFile, writeFile)
+<span class="kw">import </span><span class="dt">Data.Text.IO</span> (writeFile, readFile)
+<span class="kw">import </span><span class="dt">System.FilePath.Posix</span> (takeFileName, dropExtension)
+<span class="kw">import qualified</span> <span class="dt">Data.Text</span> <span class="kw">as</span> <span class="dt">T</span>
+
+<span class="kw">import </span><span class="dt">Parse</span> (encode)
+<span class="kw">import </span><span class="dt">Code</span>
+<span class="kw">import </span><span class="dt">Html</span>
+<span class="kw">import </span><span class="dt">Markdown</span>
+<span class="kw">import </span><span class="dt">Types</span>
+</code></pre><p>Process as a library accompolishes the primary goals through the <code>process</code> function. After reading the file, <code>encode</code> parses the file into <code>[Chunks]</code> (see Types.hs for more about the data structure). Lastly, each pipeline function in the list of <code>pipes</code> is applied to the data structure. Each pipeline takes a <code>[Chunks]</code> and writes a file.</p>
+<pre><code>&lt;&lt; <a id="process_a_single_file" href="#process_a_single_file">process a single file</a> &gt;&gt;=
+process pipes file <span class="fu">=</span> <span class="kw">do</span> 
+stream <span class="ot">&lt;-</span> readFile file
+encoded <span class="ot">&lt;-</span> return <span class="fu">$</span> encode stream 
+mapM_ (\f <span class="ot">-&gt;</span> f fileName encoded) pipes <span class="fu">&gt;&gt;</span> return ()
+<span class="kw">where</span>
+    fileName <span class="fu">=</span> dropExtension <span class="fu">$</span> takeFileName file
+</code></pre><p>Beside the main function <code>process</code>. Process as a module defines several useful pipelines (function transforms chained together). Each pipeline can be generalized in the following way.</p>
+<ol>
+<li>Append the correct file extention to the filename</li>
+<li>Transform <code>[Chunks] -&gt; Text</code>, through a <code>generate</code> function</li>
+<li>Write to the path with the transformed text</li>
+</ol>
+<pre><code>&lt;&lt; <a id="helper_functions" href="#helper_functions">helper functions</a> &gt;&gt;=
+&lt;&lt; <a href="#html_pipeline">html pipeline</a> &gt;&gt;
+&lt;&lt; <a href="#markdown_pipeline">markdown pipeline</a> &gt;&gt;
+&lt;&lt; <a href="#code_pipeline">code pipeline</a> &gt;&gt;
+&lt;&lt; <a href="#check_that_directories_end_with_'/'">check that directories end with '/'</a> &gt;&gt;
+</code></pre><pre><code>&lt;&lt; <a id="html_pipeline" href="#html_pipeline">html pipeline</a> &gt;&gt;=
+htmlPipeline dir css name enc <span class="fu">=</span> writeFile path output
+    <span class="kw">where</span> 
+        path <span class="fu">=</span> (ensureTrailingSlash dir) <span class="fu">++</span> name <span class="fu">++</span> <span class="st">&quot;.html&quot;</span>
+        output <span class="fu">=</span> Html.generate css name enc
+</code></pre><pre><code>&lt;&lt; <a id="markdown_pipeline" href="#markdown_pipeline">markdown pipeline</a> &gt;&gt;=
+mdPipeline dir css name enc <span class="fu">=</span> writeFile path output
+    <span class="kw">where</span>
+        path <span class="fu">=</span> (ensureTrailingSlash dir) <span class="fu">++</span> name <span class="fu">++</span> <span class="st">&quot;.md&quot;</span>
+        output <span class="fu">=</span> Markdown.generate name enc
+</code></pre><pre><code>&lt;&lt; <a id="code_pipeline" href="#code_pipeline">code pipeline</a> &gt;&gt;=
+codePipeline dir css name enc <span class="fu">=</span> writeFile path output
+    <span class="kw">where</span>
+        path <span class="fu">=</span> (ensureTrailingSlash dir) <span class="fu">++</span> name
+        output <span class="fu">=</span> Code.generate enc
+</code></pre><p>This last utility function solves the ambiguity in specifying a directory with a command line tool. Ex. <code>lit -c --code-dir=output ..</code> behaves the same as <code>lit -c --code-dir=output/ ..</code></p>
+<pre><code>&lt;&lt; <a id="check_that_directories_end_with_'/'" href="#check_that_directories_end_with_'/'">check that directories end with '/'</a> &gt;&gt;=
+ensureTrailingSlash dir <span class="fu">=</span> 
+    <span class="kw">if</span> last dir <span class="fu">==</span> <span class="ch">&#39;/&#39;</span>
+    <span class="kw">then</span> dir
+    <span class="kw">else</span> dir <span class="fu">++</span> <span class="st">&quot;/&quot;</span>
+</code></pre></body></html>

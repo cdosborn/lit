@@ -1,0 +1,134 @@
+<!DOCTYPE HTML>
+<html><head><title>Parse.hs</title><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="css/default.css"></head><body><h1>Parse.hs - transforms a <code>lit</code> story into a data structure</h1>
+<p>Parse defines a bunch of smaller parsers that in conjunction
+can be used to parse an entire literate file in the form of <code>Text</code>.
+Parse does the bare minimum in assembling the data structure,
+assembling a <code>[Chunks]</code>. For example, narratives are packaged into
+<code>Prose</code> objects <em>by line</em>, instead of attempting to parse <em>entire</em>
+narrative sections into one <code>Prose</code> object. For more information on
+the types refer to Types.hs.</p>
+<p>Much of the later portion of Parse, the listing of parsers, does not
+lend well to a narrative. So the narrative will resort to the
+traditional role of comments in non-literate programs.</p>
+<p>An overview of the file:</p>
+<pre><code>&lt;&lt; <a id="*" href="#*">*</a> &gt;&gt;=
+&lt;&lt; <a href="#define_Parse_module">define Parse module</a> &gt;&gt;
+&lt;&lt; <a href="#import_modules">import modules</a> &gt;&gt;
+&lt;&lt; <a href="#lit_file_to_data_structure">lit file to data structure</a> &gt;&gt;
+&lt;&lt; <a href="#many_parsers">many parsers</a> &gt;&gt;
+&lt;&lt; <a href="#string_to_monadic_text">string to monadic text</a> &gt;&gt;
+&lt;&lt; <a href="#testing_functions">testing functions</a> &gt;&gt;
+</code></pre><p>For the sake of testing, parse exports all of its definitions.</p>
+<pre><code>&lt;&lt; <a id="define_Parse_module" href="#define_Parse_module">define Parse module</a> &gt;&gt;=
+<span class="ot">{-# LANGUAGE OverloadedStrings #-}</span>
+<span class="kw">module</span> <span class="dt">Parse</span> <span class="kw">where</span>
+</code></pre><pre><code>&lt;&lt; <a id="import_modules" href="#import_modules">import modules</a> &gt;&gt;=
+<span class="kw">import </span><span class="dt">Text.Parsec</span>
+<span class="kw">import </span><span class="dt">Text.Parsec.Text</span>
+<span class="kw">import qualified</span> <span class="dt">Data.Text</span> <span class="kw">as</span> <span class="dt">T</span>
+
+<span class="kw">import </span><span class="dt">Types</span>
+</code></pre><p><code>encode</code> is the primary function of Parse. It interfaces between Process and the various pipelines which interpret the <code>[Chunk]</code> into various outputs.</p>
+<pre><code>&lt;&lt; <a id="lit_file_to_data_structure" href="#lit_file_to_data_structure">lit file to data structure</a> &gt;&gt;=
+<span class="ot">encode ::</span> <span class="dt">T.Text</span> <span class="ot">-&gt;</span> [<span class="dt">Chunk</span>]
+encode txt <span class="fu">=</span>
+    <span class="kw">case</span> (parse entire <span class="st">&quot;&quot;</span> txt) <span class="kw">of</span> 
+    <span class="dt">Left</span> err <span class="ot">-&gt;</span> []
+    <span class="dt">Right</span> result <span class="ot">-&gt;</span> result
+</code></pre><p>These are the many parsers from generic to most specific, which collectively parse the entire <code>lit</code> file.</p>
+<pre><code>&lt;&lt; <a id="many_parsers" href="#many_parsers">many parsers</a> &gt;&gt;=
+&lt;&lt; <a href="#parse_all_the_chunks">parse all the chunks</a> &gt;&gt;
+&lt;&lt; <a href="#parse_a_chunk">parse a chunk</a> &gt;&gt;
+&lt;&lt; <a href="#parse_a_chunk_of_prose">parse a chunk of prose</a> &gt;&gt;
+&lt;&lt; <a href="#parse_a_chunk_definition">parse a chunk definition</a> &gt;&gt;
+&lt;&lt; <a href="#try_parsing_the_end_of_a_definition">try parsing the end of a definition</a> &gt;&gt;
+&lt;&lt; <a href="#parse_the_title_of_a_definiton">parse the title of a definiton</a> &gt;&gt;
+&lt;&lt; <a href="#parse_inside_of_title">parse inside of title</a> &gt;&gt;
+&lt;&lt; <a href="#parse_a_subpart_of_the_definiton">parse a subpart of the definiton</a> &gt;&gt;
+&lt;&lt; <a href="#parse_a_reference_subpart">parse a reference subpart</a> &gt;&gt;
+&lt;&lt; <a href="#parse_any_line">parse any line</a> &gt;&gt;
+&lt;&lt; <a href="#parse_space_or_tab">parse space or tab</a> &gt;&gt;
+</code></pre><p>Parse all the chunks until the end of the file</p>
+<pre><code>&lt;&lt; <a id="parse_all_the_chunks" href="#parse_all_the_chunks">parse all the chunks</a> &gt;&gt;=
+<span class="ot">entire ::</span> <span class="dt">Parser</span> <span class="dt">Program</span>
+entire <span class="fu">=</span> manyTill chunk eof
+</code></pre><p>Parse a chunk which is either of type <code>Def</code> or type <code>Prose</code></p>
+<pre><code>&lt;&lt; <a id="parse_a_chunk" href="#parse_a_chunk">parse a chunk</a> &gt;&gt;=
+<span class="ot">chunk ::</span> <span class="dt">Parser</span> <span class="dt">Chunk</span>
+chunk <span class="fu">=</span> (try def) <span class="fu">&lt;|&gt;</span> prose
+</code></pre><p>Parse a line of prose, return <code>Prose</code> container of the line.</p>
+<pre><code>&lt;&lt; <a id="parse_a_chunk_of_prose" href="#parse_a_chunk_of_prose">parse a chunk of prose</a> &gt;&gt;=
+<span class="ot">prose ::</span> <span class="dt">Parser</span> <span class="dt">Chunk</span>
+prose <span class="fu">=</span> grabLine <span class="fu">&gt;&gt;=</span> (\line <span class="ot">-&gt;</span> return <span class="fu">$</span> <span class="dt">Prose</span> line)
+</code></pre><p>Parse a definiton of type <code>Def</code> by parsing the title
+and parsing the subparts (lines of code or references to chunks)</p>
+<pre><code>&lt;&lt; <a id="parse_a_chunk_definition" href="#parse_a_chunk_definition">parse a chunk definition</a> &gt;&gt;=
+<span class="ot">def ::</span> <span class="dt">Parser</span> <span class="dt">Chunk</span>
+def <span class="fu">=</span> <span class="kw">do</span>
+    (indent, header, lineNum) <span class="ot">&lt;-</span> title
+    parts <span class="ot">&lt;-</span> manyTill (part indent) <span class="fu">$</span> endDef indent
+    return <span class="fu">$</span> <span class="dt">Def</span> lineNum header parts
+</code></pre><p>A parser which <em>tries</em> does not consume input if it fails. <code>endDef</code> succeeds
+when the indentation does not match the proper indentation, or when there is
+a chunk title. <em>Note: if it succeeds it will consume the newlines
+without the indent</em></p>
+<pre><code>&lt;&lt; <a id="try_parsing_the_end_of_a_definition" href="#try_parsing_the_end_of_a_definition">try parsing the end of a definition</a> &gt;&gt;=
+<span class="ot">endDef ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">Parser</span> ()
+endDef indent <span class="fu">=</span> try <span class="fu">$</span> <span class="kw">do</span> { skipMany newline; notFollowedBy (string indent) <span class="fu">&lt;|&gt;</span> (lookAhead title <span class="fu">&gt;&gt;</span> parserReturn ()) }
+</code></pre><p>Parse the line which gives a title to a code chunk. <code>title</code> returns unique output
+to be used later. Ex. it records the indent, to match agains the body it contains.</p>
+<pre><code>&lt;&lt; <a id="parse_the_title_of_a_definiton" href="#parse_the_title_of_a_definiton">parse the title of a definiton</a> &gt;&gt;=
+<span class="co">-- Returns (indent, macro-name, line-no)</span>
+<span class="ot">title ::</span> <span class="dt">Parser</span> (<span class="dt">String</span>, <span class="dt">T.Text</span>, <span class="dt">Int</span>)
+title <span class="fu">=</span> <span class="kw">do</span>
+    pos <span class="ot">&lt;-</span> getPosition
+    indent <span class="ot">&lt;-</span> many ws
+    name <span class="ot">&lt;-</span> packM <span class="fu">=&lt;&lt;</span> between (string <span class="st">&quot;&lt;&lt;&quot;</span>) (string <span class="st">&quot;&gt;&gt;=&quot;</span>) (many notDelim)
+    newline
+    return <span class="fu">$</span> (indent, T.strip name, sourceLine pos)
+</code></pre><p>Parse a character which could lie within a title.</p>
+<pre><code>&lt;&lt; <a id="parse_inside_of_title" href="#parse_inside_of_title">parse inside of title</a> &gt;&gt;=
+notDelim <span class="fu">=</span> noneOf <span class="st">&quot;&gt;=&quot;</span>
+</code></pre><p>Parse a line after a title, which could either be a line of code or
+a reference to a code chunk</p>
+<pre><code>&lt;&lt; <a id="parse_a_subpart_of_the_definition" href="#parse_a_subpart_of_the_definition">parse a subpart of the definition</a> &gt;&gt;=
+<span class="ot">part ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">Parser</span> <span class="dt">Part</span>
+part indent <span class="fu">=</span> 
+    try (string indent <span class="fu">&gt;&gt;</span> varLine) <span class="fu">&lt;|&gt;</span> 
+    try (string indent <span class="fu">&gt;&gt;</span> defLine) <span class="fu">&lt;|&gt;</span>
+    (grabLine <span class="fu">&gt;&gt;=</span> \extra <span class="ot">-&gt;</span> return <span class="fu">$</span> <span class="dt">Code</span> extra)
+</code></pre><p>Parse a reference to a code chunk in the form <code>&lt;&lt; ... &gt;&gt;</code></p>
+<pre><code>&lt;&lt; <a id="parse_a_reference_subpart" href="#parse_a_reference_subpart">parse a reference subpart</a> &gt;&gt;=
+<span class="ot">varLine ::</span> <span class="dt">Parser</span> <span class="dt">Part</span>
+varLine <span class="fu">=</span> <span class="kw">do</span>
+    name <span class="ot">&lt;-</span> packM <span class="fu">=&lt;&lt;</span> between (string <span class="st">&quot;&lt;&lt;&quot;</span>) (string <span class="st">&quot;&gt;&gt;&quot;</span>) (many notDelim)
+    newline
+    return <span class="fu">$</span> <span class="dt">Ref</span> name
+</code></pre><p>Parse a line, returning the line</p>
+<pre><code>&lt;&lt; <a id="parse_any_line" href="#parse_any_line">parse any line</a> &gt;&gt;=
+<span class="ot">grabLine ::</span> <span class="dt">Parser</span> <span class="dt">T.Text</span>
+grabLine <span class="fu">=</span> <span class="kw">do</span> 
+    line <span class="ot">&lt;-</span> many (noneOf <span class="st">&quot;\n\r&quot;</span>)
+    last <span class="ot">&lt;-</span> newline
+    return <span class="fu">$</span> T.pack <span class="fu">$</span> line <span class="fu">++</span> [last]
+</code></pre><p>Parse a character which is either a space or a <code>\t</code></p>
+<pre><code>&lt;&lt; <a id="parse_space_or_tab" href="#parse_space_or_tab">parse space or tab</a> &gt;&gt;=
+<span class="ot">ws ::</span> <span class="dt">Parser</span> <span class="dt">Char</span>
+ws <span class="fu">=</span> char <span class="ch">&#39; &#39;</span> <span class="fu">&lt;|&gt;</span> char <span class="ch">&#39;\t&#39;</span>
+</code></pre><p>A monadic equivalent of pack</p>
+<pre><code>&lt;&lt; <a id="string_to_monadic_text" href="#string_to_monadic_text">string to monadic text</a> &gt;&gt;=
+packM str <span class="fu">=</span> return <span class="fu">$</span> T.pack str
+</code></pre><p>The following functions allow for testing <code>Parser Text</code> and <code>Parser Chunk</code></p>
+<pre><code>&lt;&lt; <a id="testing_functions" href="#testing_functions">testing functions</a> &gt;&gt;=
+<span class="ot">textP ::</span> <span class="dt">Parsec</span> <span class="dt">T.Text</span> () <span class="dt">T.Text</span> <span class="ot">-&gt;</span>  <span class="dt">T.Text</span> <span class="ot">-&gt;</span> <span class="dt">T.Text</span>
+textP p txt <span class="fu">=</span>
+    <span class="kw">case</span> (parse p <span class="st">&quot;&quot;</span> txt) <span class="kw">of</span> 
+    <span class="dt">Left</span> err <span class="ot">-&gt;</span> T.empty
+    <span class="dt">Right</span> result <span class="ot">-&gt;</span> result
+
+<span class="ot">chunkP ::</span> <span class="dt">Parsec</span> <span class="dt">T.Text</span> () <span class="dt">Chunk</span> <span class="ot">-&gt;</span>  <span class="dt">T.Text</span> <span class="ot">-&gt;</span> <span class="dt">Maybe</span> <span class="dt">Chunk</span>
+chunkP p txt <span class="fu">=</span>
+    <span class="kw">case</span> (parse p <span class="st">&quot;&quot;</span> txt) <span class="kw">of</span> 
+    <span class="dt">Left</span> err <span class="ot">-&gt;</span> <span class="dt">Nothing</span>
+    <span class="dt">Right</span> result <span class="ot">-&gt;</span> <span class="dt">Just</span> result
+</code></pre></body></html>

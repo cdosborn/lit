@@ -10,18 +10,18 @@ import Data.Text.IO (writeFile, readFile)
 import System.FilePath.Posix (takeFileName, dropExtension)
 import qualified Data.Text as T
 
-import Parse
+import Parse (encode)
 import Code
 import Html
 import Markdown
 import Types
 
 process pipes file = do 
-    stream <- readFile file
-    encoded <- return $ encode stream 
-    mapM_ (\f -> f fileName encoded) pipes >> return ()
-    where
-        fileName = dropExtension $ takeFileName file
+stream <- readFile file
+encoded <- return $ encode stream 
+mapM_ (\f -> f fileName encoded) pipes >> return ()
+where
+    fileName = dropExtension $ takeFileName file
 
 htmlPipeline dir css name enc = writeFile path output
     where 
@@ -42,3 +42,6 @@ ensureTrailingSlash dir =
     if last dir == '/'
     then dir
     else dir ++ "/"
+
+
+

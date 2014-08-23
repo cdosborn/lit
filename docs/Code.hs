@@ -6,12 +6,13 @@ import qualified Data.HashMap.Strict as Map
 import qualified Data.Text as T
 
 import Types
-
+  
 generate :: [Chunk] -> T.Text
-generate = expand . merge . (filter isDef)
+generate = expand . merge
 
+-- merge together definitions with the same name
 merge :: [Chunk] -> [Chunk]
-merge = mergeAux []
+merge chunks = mergeAux [] (filter isDef chunks)
 mergeAux ans [] = ans
 mergeAux ans (next:rest) = 
     let 
@@ -22,6 +23,7 @@ mergeAux ans (next:rest) =
     in 
         mergeAux (merged:ans) rem
 
+-- assumes always one or more chunk
 combineChunks :: [Chunk] -> Chunk
 combineChunks (a:[]) = a
 combineChunks l@(c:cs) = Def line name parts 
@@ -36,9 +38,9 @@ expand chunks =
         -- map (name, parts)
         partMap = Map.fromList $ zip (map getName chunks) (map getParts chunks)
         rootParts = Map.lookupDefault [] "*" partMap 
-        parts = if rootParts == [] then (getParts $ head (chunks)) else rootParts 
     in
-        expandParts parts partMap
+        expandParts rootParts partMap
+        
 expandParts :: [Part] -> Map.HashMap T.Text [Part] -> T.Text
 expandParts parts partMap =
     let 
@@ -49,6 +51,3 @@ expandParts parts partMap =
                 where refParts = Map.lookupDefault [] (T.strip name) partMap)
     in 
         T.concat (map toText parts) `T.append` "\n"
-
-
-

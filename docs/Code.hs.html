@@ -1,0 +1,106 @@
+<!DOCTYPE HTML>
+<html><head><title>Code.hs</title><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="css/default.css"></head><body><h1>Code.hs - generates the Code from a literate file</h1>
+<p>Code is a module which transforms the main data structure
+for a parsed <code>lit</code> file into the actual source. By expanding all
+macros and ignoring the narrative, the Code module produces the
+portion intended for computer interpretation.<code>lit</code> in theory is
+language independent, as it does not make assumptions about the
+language stored within. The arbitrary macro <code>&lt;&lt; * &gt;&gt;=</code> communicates
+to Code the starting point of the document, comparable to a
+table of contents. Code then proceeds to build the document expanding
+macro references and joining macro extensions.</p>
+<p>An overview of the file:</p>
+<pre><code>&lt;&lt; <a id="*" href="#*">*</a> &gt;&gt;=
+&lt;&lt; <a href="#define_Code_module">define Code module</a> &gt;&gt;
+&lt;&lt; <a href="#import_modules">import modules</a> &gt;&gt;
+&lt;&lt; <a href="#generate_a_code_file_from_chunks">generate a code file from chunks</a> &gt;&gt;
+&lt;&lt; <a href="#helper_functions">helper functions</a> &gt;&gt;
+</code></pre><p>Code only exports <code>generate</code> akin to Html and Markdown, the other output modules.</p>
+<pre><code>&lt;&lt; <a id="define_Code_module" href="#define_Code_module">define Code module</a> &gt;&gt;=
+<span class="ot">{-# LANGUAGE OverloadedStrings #-}</span>
+<span class="kw">module</span> <span class="dt">Code</span> ( generate ) <span class="kw">where</span>
+</code></pre><p>Code relies on a HashMap, where the keys are macro names and the values <code>Chunk</code>.
+Despite being of type <code>Chunk</code> all values constructed from <code>Prose</code> are ignored leaving
+only <code>Def</code>. For more information on types see Types.hs</p>
+<pre><code>&lt;&lt; <a id="import_modules" href="#import_modules">import modules</a> &gt;&gt;=
+<span class="kw">import </span><span class="dt">Data.List</span> (partition)
+<span class="kw">import qualified</span> <span class="dt">Data.HashMap.Strict</span> <span class="kw">as</span> <span class="dt">Map</span>
+<span class="kw">import qualified</span> <span class="dt">Data.Text</span> <span class="kw">as</span> <span class="dt">T</span>
+
+<span class="kw">import </span><span class="dt">Types</span>
+</code></pre><p><code>generate</code> is the interface for the module. <code>lit</code> generates the <code>[Chunk]</code> with Parse.hs
+before calling <code>generate</code> to make the code file from a <code>lit</code> file. It performs:</p>
+<ol>
+<li>Filtering out all <code>Prose</code></li>
+<li>Merging macro definitions with the same name</li>
+<li>Expanding macros and references to just lines of code</li>
+</ol>
+<pre><code>&lt;&lt; <a id="generate_a_code_file_from_chunks" href="#generate_a_code_file_from_chunks">generate a code file from chunks</a> &gt;&gt;=
+<span class="ot">generate ::</span> [<span class="dt">Chunk</span>] <span class="ot">-&gt;</span> <span class="dt">T.Text</span>
+generate <span class="fu">=</span> expand <span class="fu">.</span> merge <span class="fu">.</span> (filter isDef)
+</code></pre><p><code>generate</code> depends on the following helper functions.</p>
+<pre><code>&lt;&lt; <a id="helper_functions" href="#helper_functions">helper functions</a> &gt;&gt;=
+&lt;&lt; <a href="#merge_chunks_with_the_same_name">merge chunks with the same name</a> &gt;&gt;
+&lt;&lt; <a href="#reduce_chunks_into_one">reduce chunks into one</a> &gt;&gt;
+&lt;&lt; <a href="#expand_chunk_references_with_chunks">expand chunk references with chunks</a> &gt;&gt;
+</code></pre><p><code>merge</code> allows for a macro extension. By reusing a macro definition,
+narrative can be interweaved into code.</p>
+<pre><code>&lt;&lt; <a id="merge_chunks_with_the_same_name" href="#merge_chunks_with_the_same_name">merge chunks with the same name</a> &gt;&gt;=
+<span class="ot">merge ::</span> [<span class="dt">Chunk</span>] <span class="ot">-&gt;</span> [<span class="dt">Chunk</span>]
+merge <span class="fu">=</span> mergeAux []
+</code></pre><p>The same macro definition was used, and <code>lit</code> will merge both into
+one when it generates the final code file. <code>merge</code> creates a list
+of macros with the same name to be combined.</p>
+<pre><code>&lt;&lt; <a id="merge_chunks_with_the_same_name" href="#merge_chunks_with_the_same_name">merge chunks with the same name</a> &gt;&gt;=
+mergeAux ans [] <span class="fu">=</span> ans
+mergeAux ans (next<span class="fu">:</span>rest) <span class="fu">=</span> 
+    <span class="kw">let</span> 
+        name <span class="fu">=</span> getName next
+        chunkHasName name <span class="fu">=</span> (<span class="fu">==</span> name) <span class="fu">.</span> getName
+        (found, rem) <span class="fu">=</span> partition (chunkHasName name) rest 
+        merged <span class="fu">=</span> combineChunks (next<span class="fu">:</span>found)
+    <span class="kw">in</span> 
+        mergeAux (merged<span class="fu">:</span>ans) rem
+</code></pre><p><code>combineChunks</code> assumes a list of macros with the same name. It returns
+a new <code>Chunk</code> that has the combined inner <code>[Part]</code> of the list, but sharing
+the line number and name of the first. Since <code>combineChunks</code> reduces a list to
+a value, it cannot be passed an empty list.</p>
+<pre><code>&lt;&lt; <a id="reduce_chunks_into_one" href="#reduce_chunks_into_one">reduce chunks into one</a> &gt;&gt;=
+<span class="ot">combineChunks ::</span> [<span class="dt">Chunk</span>] <span class="ot">-&gt;</span> <span class="dt">Chunk</span>
+combineChunks (a<span class="fu">:</span>[]) <span class="fu">=</span> a
+combineChunks l<span class="fu">@</span>(c<span class="fu">:</span>cs) <span class="fu">=</span> <span class="dt">Def</span> line name parts 
+    <span class="kw">where</span>
+        parts <span class="fu">=</span> concatMap getParts l
+        name <span class="fu">=</span> getName c
+        line <span class="fu">=</span> getLineNo c
+</code></pre><p><code>expand</code> assumes a list of only <code>Def</code> of type <code>Chunk</code> which hold the actual code
+or references to other 'Def' which hold code. First it creates a map of (macro name, macro)
+of more precisely (<code>Text</code>,<code>Chunk</code>). It then searches for the root macro name <code>*</code>
+and recursively expands the different parts of the root.
+(<code>&lt;&lt; * &gt;&gt;=</code>) to begin expansion</p>
+<pre><code>&lt;&lt; <a id="expand_chunk_references_with_chunks" href="#expand_chunk_references_with_chunks">expand chunk references with chunks</a> &gt;&gt;=
+<span class="ot">expand ::</span> [<span class="dt">Chunk</span>] <span class="ot">-&gt;</span> <span class="dt">T.Text</span>
+expand chunks <span class="fu">=</span>
+    <span class="kw">let</span> 
+        <span class="co">-- map (name, parts)</span>
+        partMap <span class="fu">=</span> Map.fromList <span class="fu">$</span> zip (map getName chunks) (map getParts chunks)
+        rootParts <span class="fu">=</span> Map.lookupDefault [] <span class="st">&quot;*&quot;</span> partMap 
+    <span class="kw">in</span>
+        expandParts rootParts partMap
+</code></pre><p><code>expand</code> from above relies on <code>expandParts</code> to actually perform the recursive lookup. Each
+call to <code>expandParts</code> returns text if the part is simply a code line (<code>Code line</code>) or the
+text which results from expanding a reference to its code lines. If the part is a reference (<code>Ref name</code>),
+<code>expandParts</code> looks up the name of the macro in the map, and proceeds to pull out the code lines
+in that macro. Refer to Types.hs for clarity on the different wrapper types mentioned here.</p>
+<pre><code>&lt;&lt; <a id="expand_chunk_references_with_chunks" href="#expand_chunk_references_with_chunks">expand chunk references with chunks</a> &gt;&gt;=
+<span class="ot">expandParts ::</span> [<span class="dt">Part</span>] <span class="ot">-&gt;</span> <span class="dt">Map.HashMap</span> <span class="dt">T.Text</span> [<span class="dt">Part</span>] <span class="ot">-&gt;</span> <span class="dt">T.Text</span>
+expandParts parts partMap <span class="fu">=</span>
+    <span class="kw">let</span> 
+        toText <span class="fu">=</span> (\part <span class="ot">-&gt;</span> 
+            <span class="kw">case</span> part <span class="kw">of</span>
+            <span class="dt">Code</span> txt <span class="ot">-&gt;</span> txt
+            <span class="dt">Ref</span> name <span class="ot">-&gt;</span> expandParts refParts partMap
+                <span class="kw">where</span> refParts <span class="fu">=</span> Map.lookupDefault [] (T.strip name) partMap)
+    <span class="kw">in</span> 
+        T.concat (map toText parts) <span class="ot">`T.append`</span> <span class="st">&quot;\n&quot;</span>
+</code></pre></body></html>

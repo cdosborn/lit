@@ -1,0 +1,34 @@
+<!DOCTYPE HTML>
+<html><head><title>hello</title><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="../css/default.css"></head><body><h1><a href="root.html">/ </a> lit and hello world</h1>
+<p>In <code>lit</code>, the regular code file is separted into labeled chunks. As an author of
+a <code>lit</code> program, chunks may be placed in any order (best fit for explanation).
+However, an index must exist to define the proper order for <code>lit</code> to reconstruct the code file.</p>
+<p>This is the label for a code chunk, <code>&lt;&lt; some name &gt;&gt;=</code>. Everything sharing the same indent
+is the code that it contains. Otherwise, it's considered part of the narrative. An example chunk:</p>
+<pre><code>    &lt;&lt; a comment &gt;&gt;=<br>    // I happen to be a JavaScript comment</code></pre>
+<p>Chunks can be surrounded with narrative.</p>
+<pre><code>This is a great place to explain the complexity<br>of print statements in Javascript.<br>    &lt;&lt; say hello &gt;&gt;=<br>    console.log(&quot;Hello World!);</code></pre>
+<p>The code contained in a chunk can be referred to later in the program, through
+a chunk's label.</p>
+<p>For the smallest example of a complete <code>lit</code> program we need to specify the index.
+The index represents the instructions for building the code file. In <code>lit</code>, the index
+is just another <code>lit</code> macro with an arbitrary name, it's the <code>&lt;&lt; * &gt;&gt;=</code> macro. Because it's
+just another macro it can contain Javascript or the macros we defined earlier.</p>
+<p><em>Note: If lit cannot find a macro with the name <code>*</code> it assumes the first macro is the index.</em></p>
+<p>A complete example.</p>
+<pre><code>Here's a general overview of hello world in Javascript<br>    &lt;&lt; * &gt;&gt;=<br>    &lt;&lt; a comment &gt;&gt;<br>    &lt;&lt; say hello &gt;&gt;<br><br>Its perfectly valid to write a sentence here.<br>    &lt;&lt; a comment &gt;&gt;=<br>    // I happen to be a JavaScript comment<br><br>This is a great place to explain the complexity<br>of print statements in Javascript.<br>    &lt;&lt; say hello &gt;&gt;=<br>    console.log(&quot;Hello World!);</code></pre>
+<p>With this file several things can be accomplished.</p>
+<ul>
+<li>A lengthy piece of code can be broken into pieces and explained at a high-level with narrative.</li>
+<li>The code can be extracted</li>
+<li>Really nice documentation can be generated</li>
+</ul>
+<h3>Extract the code</h3>
+<p><code>lit --code helloWorld.js.lit</code></p>
+<p><code>lit</code> generates <code>helloWorld.js</code></p>
+<pre><code>// I happen to be a JavaScript comment<br>console.log(&quot;Hello World!);</code></pre>
+<h3>Nice documenation</h3>
+<p>Although the examples above relied on plain text, markdown can be used for the narrative.
+This allows for very presentable documentation. To read the documentation for <code>lit</code> applied
+to its own source follow <a href="root.html">here</a>.</p>
+</body></html>

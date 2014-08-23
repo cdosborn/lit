@@ -3,8 +3,6 @@ module Markdown ( generate ) where
 
 import qualified Data.Text as T
 
-import Text.Blaze (toValue, (!))
-
 import Types
 import Highlight (getLang)
 
@@ -25,7 +23,7 @@ chunkToMarkdown lang chunk =
     Def _ name parts -> 
         let 
             lang' = T.pack lang
-            header = headerName name
+            header = "<< " <++> (T.strip name) <++> " >>="
             mdParts = T.concat $ map (partToText lang) parts
         in 
             "```" <++> lang'   <++> 
@@ -38,5 +36,5 @@ partToText lang part =
     Code txt -> txt
     Ref txt -> ("<< " <++> (T.strip txt) <++> " >>\n")
 
-headerName :: T.Text -> T.Text
-headerName name = "<< " <++> (T.strip name) <++> " >>="
+
+

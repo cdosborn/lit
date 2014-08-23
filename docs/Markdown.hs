@@ -1,0 +1,80 @@
+# Markdown - generates a markdown document from a `lit` file
+
+Markdown is a module which transforms the main data structure for a parsed 
+`lit` file into markdown. The main motivation for markdown as a supported
+document is to enable users to render `lit` files with existing `Markdown` engines.
+Most notably, converted `lit` files can be automatically viewed on Github. Although
+`lit` files can be functional markdown, this module labels code blocks by
+language and allows the original `lit` file to use a preferred indentation.
+Markdown transforms code blocks.
+
+An overview of the file:
+    << * >>=
+    << define html module >>
+    << import modules >>
+    << generate markdown document from chunks >>
+    << helper functions >>
+
+    {-# LANGUAGE OverloadedStrings #-}
+    module Markdown ( generate ) where
+
+    import qualified Data.Text as T
+
+    import Text.Blaze (toValue, (!))
+
+    import Types
+    import Highlight (getLang)
+
+`generate` is the interface for the module. `lit` generates the `[Chunk]` with Parse.hs
+before calling `generate` to make the markdown file from a `lit` file. `generate` returns
+the union of all the transformed markdown `Chunk`s.
+    << generate markdown document from chunks >>
+    generate :: String -> [Chunk] -> T.Text
+    generate name chunks = 
+        let 
+            lang = getLang name
+            toMarkDown = chunkToMarkdown lang
+        in
+            T.concat $ map toMarkDown chunks
+
+
+An overview of the helper functions used to generate a markdown document.
+    << helper functions >>=
+    << frequently used operator for appending text >>
+    << transorm a chunk to markdown >>
+    << transform a part of a chunk to markdown >>
+
+Due to the verbosity of using `T.append` as an infix operator for `T.Text`, the following
+operator appends text like the list append operator `++`
+    << frequently used operator for appending text >>=
+    (<++>) :: T.Text -> T.Text -> T.Text
+    (<++>) = T.append
+
+`chunkToMarkdown` only processes code portions, since `Prose` is already assumed to be
+markdown. Code blocks are wrapped in triple backticks and labeled with the inferred
+language of the code from the file extension.
+    << transorm a chunk to markdown >>=
+    chunkToMarkdown lang chunk =
+        case chunk of
+        Prose text  -> text
+        Def _ name parts -> 
+            let 
+                lang' = T.pack lang
+                header = "<< " <++> (T.strip name) <++> " >>="
+                mdParts = T.concat $ map (partToText lang) parts
+            in 
+                "```" <++> lang'   <++> 
+                "\n"  <++> header  <++> 
+                "\n"  <++> mdParts <++> "```\n"
+
+A `Chunk` contains a `[Part]` where each `Part` is either
+a line of code or a macro reference. In this module a `[Part]` 
+is rendered as a code block. Each line of code is valid, but
+each reference needs to be classified as a macro, with the
+macro syntax `<< ... >>`.
+    << transform a part of a chunk to markdown >>=
+    partToText :: String -> Part -> T.Text
+    partToText lang part =
+        case part of
+        Code txt -> txt
+        Ref txt -> ("<< " <++> (T.strip txt) <++> " >>\n")
