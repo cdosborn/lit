@@ -1,0 +1,88 @@
+# [/ ](root.html)Highlight.hs - highlights generated Html
+
+Highlight is a tampered version of John MacFarlane's [highlighting-kate](https://github.com/jgm/highlighting-kate) library. It exposes some of the internals to allow for custom highlighting. The highlighting simply lexes and applies token wrappers around atoms. For example: 
+
+`"import" -> (KeywordTok, "import")` 
+
+After being rendered to Html the previous tokenized atom is represented as: 
+
+`<span class="kw">import</span>`
+
+An overview of the file:
+    << * >>=
+    << define Highlight module >>
+    << import modules >>
+    << highlight text by language >>
+    << transform tokenized line to html >>
+    << transform token to html >>
+    << token to class name >>
+    << lookup language by file extension >>
+
+Highlight exports `highlight` to tokenize html, and `getLang` which uses a lookup to return the language for a given file extension.
+    << define Highlight module >>=
+    module Highlight (highlight, getLang) where
+
+Highlight does not depend on any modules local to `lit`. It really repackages the functionality from [highlighting-kate](https://github.com/jgm/highlighting-kate).
+    << import modules >>=
+    import qualified Data.Text as T 
+    import Data.Monoid (mconcat)
+
+    import Text.Blaze (toValue, (!))
+    import qualified Text.Blaze.Html5 as H
+    import qualified Text.Blaze.Html5.Attributes as A
+    import Text.Highlighting.Kate ( defaultFormatOpts
+                                  , highlightAs
+                                  , languagesByFilename )
+    import Text.Highlighting.Kate.Types 
+
+`highlight` transforms text into Html that can be stylized with Css. This is accomplished by tokenizing the text into type `SourceLine` an alias for a list of tokens which are converted to Html.
+    << highlight text by language >>=
+    highlight :: String -> T.Text -> H.Html
+    highlight lang txt = 
+        let
+            highlighted = highlightAs lang (T.unpack txt)
+            htmlList = map sourceLineToHtml highlighted
+        in 
+            mconcat htmlList
+
+This helper function transforms a list of tokens into Html.
+    << transform tokenized line to html >>=
+    sourceLineToHtml :: SourceLine -> H.Html
+    sourceLineToHtml line = mconcat $  htmlList ++ [H.toHtml "\n"]
+        where
+            htmlList = map (tokenToHtml defaultFormatOpts) line
+
+This helper function transforms a single token into Html.
+    << transform token to html >>=
+    tokenToHtml :: FormatOptions -> Token -> H.Html
+    tokenToHtml _ (NormalTok, str)  = H.toHtml str
+    tokenToHtml opts (toktype, str) =
+        if titleAttributes opts
+        then sp ! A.title (toValue $ show toktype)
+        else sp 
+            where sp = H.span ! A.class_ (toValue $ short toktype) $ H.toHtml str
+
+When a `TokenType` is transformed to Html the `short` function provides the Html class attribute value.
+    << token to class name >>=
+    short :: TokenType -> String
+    short KeywordTok        = "kw"
+    short DataTypeTok       = "dt"
+    short DecValTok         = "dv"
+    short BaseNTok          = "bn"
+    short FloatTok          = "fl"
+    short CharTok           = "ch"
+    short StringTok         = "st"
+    short CommentTok        = "co"
+    short OtherTok          = "ot"
+    short AlertTok          = "al"
+    short FunctionTok       = "fu"
+    short RegionMarkerTok   = "re"
+    short ErrorTok          = "er"
+    short NormalTok         = ""
+
+A utility exported by Highlight which provides the language for a given file path.
+    << lookup language by file extension >>=
+    getLang path = 
+        case languagesByFilename path of
+        [] -> ""
+        lst -> head lst
