@@ -11,3 +11,5 @@ labeled chunks, that can be rearranged in any order.
 
 Following some simple rules for macros, `lit` can reassemble the code file from these macros. 
 Outside of the macros, anything can be written which serves as the narrative.
+
+[@cdosborn](https://github.com/cdosborn)
