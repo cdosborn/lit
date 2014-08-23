@@ -1,6 +1,6 @@
 # [/ ](root.html)lit.hs - a *modern* literate tool
 
-`lit` attempts to build upon the evolution of prior [literate programming](http://en.wikipedia.org/wiki/Literate_programming) (LP) tools. `lit` is language independent with only 2 control structures. `lit` uses markdown for styling documents, and relies on indentation for defining code chunks. Learn the [syntax](syntax.html), follow a [tutorial](hello.html) or continue to read `lit` applied to its own source.
+`lit` attempts to build upon the evolution of prior [literate programming](http://en.wikipedia.org/wiki/Literate_programming) (LP) tools. `lit` is language independent with only 2 control structures. `lit` uses markdown for styling documents, and relies on indentation for defining code chunks. Learn the [syntax](syntax.html), follow a [tutorial](tutorial.html) or continue to read `lit` applied to its own source.
 
 A high-level overview of `lit.hs`:
     << * >>=

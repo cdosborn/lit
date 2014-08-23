@@ -1,6 +1,6 @@
 # [/ ](root.html) tutorial
 
-In `lit`, the regular code file is separted into labeled chunks. As an author of 
+In `lit`, a code file is separted into labeled chunks. As an author of 
 a `lit` program, chunks may be placed in any order (best fit for explanation).
  However, an index must exist to define the proper order for `lit` to reconstruct the code file.
 
