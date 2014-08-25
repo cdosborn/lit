@@ -152,5 +152,5 @@ Based on the conditions, we prepare part of the pipeline (the rest occurs in Pro
 In the final call of main, either the programs prints [errors](#usage%20messages) or redirects the program flow with `maybeWatch`. The bulk of the file processing is passed to the `Process.hs` [module](Process.hs.html).
     << main >>=
         if allErr /= [] || (not html && not code && not markdown) || files == []
-        then hPutStrLn stderr ((concat allErr) ++ help) 
-        else (maybeWatch (Process.process pipes)) files
+            then hPutStrLn stderr ((concat allErr) ++ help) 
+            else (maybeWatch (Process.process pipes)) files

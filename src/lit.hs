@@ -112,7 +112,7 @@ main = do
         errors'' = if docsDirCheck then [] else ["Directory: " ++ docsDir ++ " does not exist\n"]
         allErr = errors ++ errors' ++ errors''
     if allErr /= [] || (not html && not code && not markdown) || files == []
-    then hPutStrLn stderr ((concat allErr) ++ help) 
-    else (maybeWatch (Process.process pipes)) files
+        then hPutStrLn stderr ((concat allErr) ++ help) 
+        else (maybeWatch (Process.process pipes)) files
 
 

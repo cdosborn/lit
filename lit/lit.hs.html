@@ -139,6 +139,6 @@ main <span class="fu">=</span> <span class="kw">do</span>
 </code></pre><p>In the final call of main, either the programs prints <a href="#usage%20messages">errors</a> or redirects the program flow with <code>maybeWatch</code>. The bulk of the file processing is passed to the <code>Process.hs</code> <a href="Process.hs.html">module</a>.</p>
 <pre><code>&lt;&lt; <a id="main" href="#main">main</a> &gt;&gt;=
     <span class="kw">if</span> allErr <span class="fu">/=</span> [] <span class="fu">||</span> (not html <span class="fu">&amp;&amp;</span> not code <span class="fu">&amp;&amp;</span> not markdown) <span class="fu">||</span> files <span class="fu">==</span> []
-    <span class="kw">then</span> hPutStrLn stderr ((concat allErr) <span class="fu">++</span> help) 
-    <span class="kw">else</span> (maybeWatch (Process.process pipes)) files
+        <span class="kw">then</span> hPutStrLn stderr ((concat allErr) <span class="fu">++</span> help) 
+        <span class="kw">else</span> (maybeWatch (Process.process pipes)) files
 </code></pre></body></html>
