@@ -101,10 +101,8 @@ main = do
                 , optCss      = mCss
                 , optWatch    = watching
                 } = opts 
-
     codeDirCheck <- doesDirectoryExist codeDir
     docsDirCheck <- doesDirectoryExist docsDir
-
     let htmlPipe = if html     then [Process.htmlPipeline docsDir mCss] else []
         mdPipe   = if markdown then [Process.mdPipeline   docsDir mCss] else []
         codePipe = if code     then [Process.codePipeline codeDir mCss] else []
@@ -113,7 +111,8 @@ main = do
         errors'  = if codeDirCheck then [] else ["Directory: " ++ codeDir ++ " does not exist\n"]
         errors'' = if docsDirCheck then [] else ["Directory: " ++ docsDir ++ " does not exist\n"]
         allErr = errors ++ errors' ++ errors''
-
     if allErr /= [] || (not html && not code && not markdown) || files == []
         then hPutStrLn stderr ((concat allErr) ++ help) 
         else (maybeWatch (Process.process pipes)) files
+
+

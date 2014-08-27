@@ -8,30 +8,29 @@ import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
 import Text.Highlighting.Kate ( defaultFormatOpts
                               , highlightAs
-                              , languagesByFilename)
+                              , languagesByFilename )
 import Text.Highlighting.Kate.Types 
 
--- The methods below were heavily derived from John MacFarlane's highlighting-kate source
 highlight :: String -> T.Text -> H.Html
-highlight lang txt =
+highlight lang txt = 
     let
         highlighted = highlightAs lang (T.unpack txt)
         htmlList = map sourceLineToHtml highlighted
     in 
         mconcat htmlList
 
-tokenToHtml :: FormatOptions -> Token -> H.Html
-tokenToHtml _ (NormalTok, str)  = H.toHtml str
-tokenToHtml opts (toktype, str) = 
-    if titleAttributes opts 
-    then sp ! A.title (toValue $ show toktype) 
-    else sp 
-        where sp = H.span ! A.class_ (toValue $ short toktype) $ H.toHtml str
-
 sourceLineToHtml :: SourceLine -> H.Html
 sourceLineToHtml line = mconcat $  htmlList ++ [H.toHtml "\n"]
-    where 
+    where
         htmlList = map (tokenToHtml defaultFormatOpts) line
+
+tokenToHtml :: FormatOptions -> Token -> H.Html
+tokenToHtml _ (NormalTok, str)  = H.toHtml str
+tokenToHtml opts (toktype, str) =
+    if titleAttributes opts
+    then sp ! A.title (toValue $ show toktype)
+    else sp 
+        where sp = H.span ! A.class_ (toValue $ short toktype) $ H.toHtml str
 
 short :: TokenType -> String
 short KeywordTok        = "kw"
@@ -53,3 +52,5 @@ getLang path =
     case languagesByFilename path of
     [] -> ""
     lst -> head lst
+
+

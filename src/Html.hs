@@ -44,7 +44,17 @@ preface maybeCss fileName bodyHtml =
             H.meta ! A.charset "UTF-8" 
             includeCss
         H.body $ do bodyHtml
-            
+
+simplify :: [Chunk] -> [Chunk]
+simplify [] = []
+simplify lst =
+    let 
+        (defs, ps) = span isDef lst
+        (ps', rest) = break isDef ps
+        mergeProse chunks = Prose $ T.concat $ map getProseText chunks
+    in case ps' of
+        [] -> defs ++ rest
+        _ -> defs ++ [mergeProse ps'] ++ (simplify rest)
 
 chunkToHtml :: String -> Chunk -> H.Html
 chunkToHtml lang chunk =
@@ -57,27 +67,6 @@ chunkToHtml lang chunk =
         in 
             H.pre $ H.code $ (header >> htmlParts)
 
--- many consecutive Proses are reduced to a single Prose
-simplify :: [Chunk] -> [Chunk]
-simplify [] = []
-simplify lst =
-    let 
-        (defs, ps) = span isDef lst
-        (ps', rest) = break isDef ps
-    in case ps' of
-        [] -> defs ++ rest
-        _ -> defs ++ [mergeProse ps'] ++ (simplify rest)
-
-mergeProse :: [Chunk] -> Chunk
-mergeProse chunks = Prose $ T.concat $ map getProseText chunks
-
-headerToHtml :: T.Text -> H.Html
-headerToHtml name =  H.preEscapedToHtml $ "&lt;&lt; " <++> link <++> " &gt;&gt;=\n" 
-    where
-        link = "<a id=\"" <++> underscored <++> "\" href=\"#" <++> underscored <++> "\">" <++> slim <++> "</a>"
-        slim = T.strip name
-        underscored = underscore slim
-
 partToHtml :: String -> Part -> H.Html
 partToHtml lang part =
     case part of
@@ -88,6 +77,16 @@ partToHtml lang part =
             slim = T.strip txt
             underscored = underscore slim 
 
+headerToHtml :: T.Text -> H.Html
+headerToHtml name =  H.preEscapedToHtml $ "&lt;&lt; " <++> link <++> " &gt;&gt;=\n" 
+    where
+        link = "<a id=\"" <++> underscored <++> "\" href=\"#" <++> underscored <++> "\">" <++> slim <++> "</a>"
+        slim = T.strip name
+        underscored = underscore slim
+
 underscore :: T.Text -> T.Text
 underscore txt =
     T.pack $ concatMap (\c -> if c == ' ' then "_" else [c]) $ T.unpack txt
+
+
+
