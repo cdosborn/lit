@@ -1,0 +1,161 @@
+# [/ ](root.html)Parse.hs - transforms a `lit` story into a data structure
+
+Parse defines a bunch of smaller parsers that in conjunction
+can be used to parse an entire literate file in the form of `Text`. 
+Parse does the bare minimum in assembling the data structure, 
+assembling a `[Chunks]`. For example, narratives are packaged into 
+`Prose` objects *by line*, instead of attempting to parse *entire* 
+narrative sections into one `Prose` object. For more information on 
+the types refer to Types.hs.
+
+Much of the later portion of Parse, the listing of parsers, does not
+lend well to a narrative. So the narrative will resort to the
+traditional role of comments in non-literate programs.
+
+An overview of the file:
+    << * >>=
+    << define Parse module >>
+    << import modules >>
+    << lit file to data structure >>
+    << many parsers >>
+    << string to monadic text >>
+    << testing functions >>
+
+For the sake of testing, parse exports all of its definitions.
+    << define Parse module >>=
+    {-# LANGUAGE OverloadedStrings #-}
+    module Parse where
+
+
+    << import modules >>=
+    import Text.Parsec
+    import Text.Parsec.Text
+    import qualified Data.Text as T
+
+    import Types
+
+`encode` is the primary function of Parse. It interfaces between Process and the various pipelines which interpret the `[Chunk]` into various outputs.
+    << lit file to data structure >>=
+    encode :: T.Text -> [Chunk]
+    encode txt =
+        case (parse entire "" txt) of 
+        Left err -> []
+        Right result -> result
+
+These are the many parsers from generic to most specific, which collectively parse the entire `lit` file.
+    << many parsers >>=
+    << parse all the chunks >>
+    << parse a chunk >>
+    << parse a chunk of prose >>
+    << parse a chunk definition >>
+    << try parsing the end of a definition >>
+    << parse the title of a definiton >>
+    << parse inside of title >>
+    << parse a subpart of the definition >>
+    << parse a reference subpart >>
+    << parse a code subpart >>
+    << parse any line >>
+    << parse space or tab >>
+
+Parse all the chunks until the end of the file
+    << parse all the chunks >>=
+    entire :: Parser Program
+    entire = manyTill chunk eof
+
+Parse a chunk which is either of type `Def` or type `Prose`
+    << parse a chunk >>=
+    chunk :: Parser Chunk
+    chunk = (try def) <|> prose
+
+Parse a line of prose, return `Prose` container of the line.
+    << parse a chunk of prose >>=
+    prose :: Parser Chunk
+    prose = grabLine >>= (\line -> return $ Prose line)
+
+Parse a definiton of type `Def` by parsing the title
+and parsing the subparts (lines of code or references to chunks)
+    << parse a chunk definition >>=
+    def :: Parser Chunk
+    def = do
+        (indent, header, lineNum) <- title
+        parts <- manyTill (part indent) $ endDef indent
+        return $ Def lineNum header parts
+
+A parser which *tries* does not consume input if it fails. `endDef` succeeds
+when the indentation does not match the proper indentation, or when there is
+a chunk title. *Note: if it succeeds it will consume the newlines
+without the indent*
+    << try parsing the end of a definition >>=
+    endDef :: String -> Parser ()
+    endDef indent = try $ do { skipMany newline; notFollowedBy (string indent) <|> (lookAhead title >> parserReturn ()) }
+
+Parse the line which gives a title to a code chunk. `title` returns unique output
+to be used later. Ex. it records the indent, to match agains the body it contains.
+    << parse the title of a definiton >>=
+    -- Returns (indent, macro-name, line-no)
+    title :: Parser (String, T.Text, Int)
+    title = do
+        pos <- getPosition
+        indent <- many ws
+        name <- packM =<< between (string "<<") (string ">>=") (many notDelim)
+        newline
+        return $ (indent, T.strip name, sourceLine pos)
+
+Parse a character which could lie within a title.
+    << parse inside of title >>=
+    notDelim = noneOf ">="
+
+Parse a line after a title, which could either be a line of code or
+a reference to a code chunk 
+    << parse a subpart of the definition >>=
+    part :: String -> Parser Part
+    part indent = 
+        try (string indent >> varLine) <|> 
+        try (string indent >> defLine) <|>
+        (grabLine >>= \extra -> return $ Code extra)
+
+Parse a reference to a code chunk in the form `<< ... >>`
+    << parse a reference subpart >>=
+    varLine :: Parser Part
+    varLine = do
+        name <- packM =<< between (string "<<") (string ">>") (many notDelim)
+        newline
+        return $ Ref name
+
+Parse a line of code, an alias for grabLine
+    << parse a code subpart >>=
+    defLine :: Parser Part
+    defLine = do
+        line <- grabLine
+        return $ Code line
+
+Parse a line, returning the line
+    << parse any line >>=
+    grabLine :: Parser T.Text
+    grabLine = do 
+        line <- many (noneOf "\n\r")
+        last <- newline
+        return $ T.pack $ line ++ [last]
+
+Parse a character which is either a space or a `\t`
+    << parse space or tab >>=
+    ws :: Parser Char
+    ws = char ' ' <|> char '\t'
+
+A monadic equivalent of pack
+    << string to monadic text >>=
+    packM str = return $ T.pack str
+
+The following functions allow for testing `Parser Text` and `Parser Chunk`
+    << testing functions >>=
+    textP :: Parsec T.Text () T.Text ->  T.Text -> T.Text
+    textP p txt =
+        case (parse p "" txt) of 
+        Left err -> T.empty
+        Right result -> result
+    
+    chunkP :: Parsec T.Text () Chunk ->  T.Text -> Maybe Chunk
+    chunkP p txt =
+        case (parse p "" txt) of 
+        Left err -> Nothing
+        Right result -> Just result
