@@ -35,8 +35,8 @@ expand chunks =
     let 
         -- map (name, parts)
         partMap = Map.fromList $ zip (map getName chunks) (map getParts chunks)
-        rootParts = Map.lookupDefault [] "*" partMap 
-        parts = if rootParts == [] then (getParts $ head (chunks)) else rootParts 
+        backup = getParts $ last chunks
+        parts = Map.lookupDefault backup "*" partMap 
     in
         expandParts parts partMap
 expandParts :: [Part] -> Map.HashMap T.Text [Part] -> T.Text

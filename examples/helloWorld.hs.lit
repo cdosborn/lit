@@ -1,7 +1,7 @@
 ## Hello World with Lit
 
 Here is an overview of a hello world Haskell program.  We define * as the macro from which all other code or macros exist.
-    << * >>=
+    << overview >>=
     << a trivial comment >>
     << print a string >>
 
