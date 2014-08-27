@@ -84,8 +84,8 @@ expand chunks <span class="fu">=</span>
     <span class="kw">let</span> 
         <span class="co">-- map (name, parts)</span>
         partMap <span class="fu">=</span> Map.fromList <span class="fu">$</span> zip (map getName chunks) (map getParts chunks)
-        rootParts <span class="fu">=</span> Map.lookupDefault [] <span class="st">&quot;*&quot;</span> partMap 
-        parts <span class="fu">=</span> <span class="kw">if</span> rootParts <span class="fu">==</span> [] <span class="kw">then</span> (getParts <span class="fu">$</span> head (chunks)) <span class="kw">else</span> rootParts 
+        backup <span class="fu">=</span> getParts <span class="fu">$</span> last chunks
+        parts <span class="fu">=</span> Map.lookupDefault backup <span class="st">&quot;*&quot;</span> partMap 
     <span class="kw">in</span>
         expandParts parts partMap
 </code></pre><p><code>expand</code> from above relies on <code>expandParts</code> to actually perform the recursive lookup. Each
