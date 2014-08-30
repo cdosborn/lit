@@ -64,7 +64,6 @@ An overview of the helper functions used to generate a valid html document.
     << wrap a chunk header in an anchor >>
     << replace spaces with underscores in anchors >>
 
-
 Due to the verbosity of using `T.append` as an infix operator for `T.Text`, the following
 operator appends text like the list append operator `++`
     << frequently used operator for appending text >>=
