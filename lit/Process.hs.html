@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html><head><title>Process.hs</title><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="../css/default.css"></head><body><h1><a href="root.html">/ </a>Process.hs - links <code>lit</code>'s command line interface and file generation</h1>
+<html><head><title>Process.hs</title><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="../src/../css/default.css"></head><body><h1><a href="root.html">/ </a>Process.hs - links <code>lit</code>'s command line interface and file generation</h1>
 <p>Process unifies the different ways that <code>lit</code> can produce files. Here are the goals:</p>
 <ol>
 <li>Parse a file into a data structure</li>
@@ -24,7 +24,9 @@
 <pre><code>&lt;&lt; <a id="import_modules" href="#import_modules">import modules</a> &gt;&gt;=
 <span class="kw">import </span><span class="dt">Prelude</span> <span class="kw">hiding</span> (readFile, writeFile)
 <span class="kw">import </span><span class="dt">Data.Text.IO</span> (writeFile, readFile)
-<span class="kw">import </span><span class="dt">System.FilePath.Posix</span> (takeFileName, dropExtension)
+<span class="kw">import </span><span class="dt">System.FilePath.Posix</span>
+<span class="kw">import </span><span class="dt">System.Directory</span>
+<span class="kw">import </span><span class="dt">Data.List</span> (intercalate)
 <span class="kw">import qualified</span> <span class="dt">Data.Text</span> <span class="kw">as</span> <span class="dt">T</span>
 
 <span class="kw">import </span><span class="dt">Parse</span> (encode)
@@ -35,11 +37,11 @@
 </code></pre><p>Process as a library accompolishes the primary goals through the <code>process</code> function. After reading the file, <code>encode</code> parses the file into <code>[Chunks]</code> (see <a href="Types.hs.html">Types.hs</a> for more about the data structure). Lastly, each pipeline function in the list of <code>pipes</code> is applied to the data structure. Each pipeline takes a <code>[Chunks]</code> and writes a file.</p>
 <pre><code>&lt;&lt; <a id="process_a_single_file" href="#process_a_single_file">process a single file</a> &gt;&gt;=
 process pipes file <span class="fu">=</span> <span class="kw">do</span> 
-stream <span class="ot">&lt;-</span> readFile file
-encoded <span class="ot">&lt;-</span> return <span class="fu">$</span> encode stream 
-mapM_ (\f <span class="ot">-&gt;</span> f fileName encoded) pipes <span class="fu">&gt;&gt;</span> return ()
-<span class="kw">where</span>
-    fileName <span class="fu">=</span> dropExtension <span class="fu">$</span> takeFileName file
+    stream <span class="ot">&lt;-</span> readFile file
+    encoded <span class="ot">&lt;-</span> return <span class="fu">$</span> encode stream 
+    mapM_ (\f <span class="ot">-&gt;</span> f fileName encoded) pipes <span class="fu">&gt;&gt;</span> return ()
+    <span class="kw">where</span>
+        fileName <span class="fu">=</span> dropExtension <span class="fu">$</span> takeFileName file
 </code></pre><p>Beside the main function <code>process</code>. Process as a module defines several useful pipelines (function transforms chained together). Each pipeline can be generalized in the following way.</p>
 <ol>
 <li>Append the correct file extention to the filename</li>
@@ -50,26 +52,48 @@ mapM_ (\f <span class="ot">-&gt;</span> f fileName encoded) pipes <span class="f
 &lt;&lt; <a href="#html_pipeline">html pipeline</a> &gt;&gt;
 &lt;&lt; <a href="#markdown_pipeline">markdown pipeline</a> &gt;&gt;
 &lt;&lt; <a href="#code_pipeline">code pipeline</a> &gt;&gt;
-&lt;&lt; <a href="#check_that_directories_end_with_'/'">check that directories end with '/'</a> &gt;&gt;
+&lt;&lt; <a href="#html_helpers">html helpers</a> &gt;&gt;
 </code></pre><pre><code>&lt;&lt; <a id="html_pipeline" href="#html_pipeline">html pipeline</a> &gt;&gt;=
-htmlPipeline dir css name enc <span class="fu">=</span> writeFile path output
-    <span class="kw">where</span> 
-        path <span class="fu">=</span> (ensureTrailingSlash dir) <span class="fu">++</span> name <span class="fu">++</span> <span class="st">&quot;.html&quot;</span>
-        output <span class="fu">=</span> Html.generate css name enc
+htmlPipeline dir mCss name enc <span class="fu">=</span> <span class="kw">do</span>
+    maybeCss <span class="ot">&lt;-</span> cssRelativeToOutput dir mCss
+    <span class="kw">let</span> path <span class="fu">=</span> (addTrailingPathSeparator dir) <span class="fu">++</span> name <span class="fu">++</span> <span class="st">&quot;.html&quot;</span>
+        output <span class="fu">=</span> Html.generate maybeCss name enc
+    writeFile path output
 </code></pre><pre><code>&lt;&lt; <a id="markdown_pipeline" href="#markdown_pipeline">markdown pipeline</a> &gt;&gt;=
 mdPipeline dir css name enc <span class="fu">=</span> writeFile path output
     <span class="kw">where</span>
-        path <span class="fu">=</span> (ensureTrailingSlash dir) <span class="fu">++</span> name <span class="fu">++</span> <span class="st">&quot;.md&quot;</span>
+        path <span class="fu">=</span> (addTrailingPathSeparator dir) <span class="fu">++</span> name <span class="fu">++</span> <span class="st">&quot;.md&quot;</span>
         output <span class="fu">=</span> Markdown.generate name enc
 </code></pre><pre><code>&lt;&lt; <a id="code_pipeline" href="#code_pipeline">code pipeline</a> &gt;&gt;=
 codePipeline dir css name enc <span class="fu">=</span> writeFile path output
     <span class="kw">where</span>
-        path <span class="fu">=</span> (ensureTrailingSlash dir) <span class="fu">++</span> name
+        path <span class="fu">=</span> (addTrailingPathSeparator dir) <span class="fu">++</span> name
         output <span class="fu">=</span> Code.generate enc
-</code></pre><p>This last utility function solves the ambiguity in specifying a directory with a command line tool. Ex. <code>lit -c --code-dir=output ..</code> behaves the same as <code>lit -c --code-dir=output/ ..</code></p>
-<pre><code>&lt;&lt; <a id="check_that_directories_end_with_'/'" href="#check_that_directories_end_with_'/'">check that directories end with '/'</a> &gt;&gt;=
-ensureTrailingSlash dir <span class="fu">=</span> 
-    <span class="kw">if</span> last dir <span class="fu">==</span> <span class="ch">&#39;/&#39;</span>
-    <span class="kw">then</span> dir
-    <span class="kw">else</span> dir <span class="fu">++</span> <span class="st">&quot;/&quot;</span>
+</code></pre><p>The helpers below take a path to a css file and a path to an html file
+from the current directory and return the path linking the html to the css.</p>
+<pre><code>&lt;&lt; <a id="html_helpers" href="#html_helpers">html helpers</a> &gt;&gt;=
+<span class="ot">cssRelativeToOutput ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">Maybe</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">IO</span> (<span class="dt">Maybe</span> <span class="dt">String</span>)
+cssRelativeToOutput output mCss <span class="fu">=</span>
+    <span class="kw">case</span> mCss <span class="kw">of</span>
+    <span class="dt">Nothing</span> <span class="ot">-&gt;</span> return <span class="dt">Nothing</span>
+    <span class="dt">Just</span> css <span class="ot">-&gt;</span> <span class="kw">do</span>
+    getCurrentDirectory <span class="fu">&gt;&gt;=</span> canonicalizePath <span class="fu">&gt;&gt;=</span> \path <span class="ot">-&gt;</span> return <span class="fu">$</span> <span class="dt">Just</span> <span class="fu">$</span> (join&#39; <span class="fu">.</span> helper&#39; <span class="fu">.</span> trim&#39; <span class="fu">.</span> split&#39;) path
+    <span class="kw">where</span> 
+        moves <span class="fu">=</span> filter (\str <span class="ot">-&gt;</span> str <span class="fu">/=</span> <span class="st">&quot;.&quot;</span>) <span class="fu">$</span> splitDirectories output
+        split&#39; <span class="fu">=</span> splitDirectories
+        trim&#39;   <span class="fu">=</span> trimToMatchLength moves
+        helper&#39; <span class="fu">=</span> reversePath moves []
+        join&#39; path <span class="fu">=</span> (intercalate <span class="st">&quot;/&quot;</span> path) <span class="fu">&lt;/&gt;</span> css
+
+trimToMatchLength list listToTrim <span class="fu">=</span> 
+    <span class="kw">let</span> len1 <span class="fu">=</span> length list
+        len2 <span class="fu">=</span> length listToTrim
+    <span class="kw">in</span> 
+        drop (len2 <span class="fu">-</span> len1) listToTrim
+
+reversePath [] solution curPathParts <span class="fu">=</span> solution
+reversePath (fst<span class="fu">:</span>rest) solution curPathParts <span class="fu">=</span>
+    <span class="kw">if</span> fst <span class="fu">==</span> <span class="st">&quot;..&quot;</span>
+    <span class="kw">then</span> reversePath rest ((last curPathParts) <span class="fu">:</span> solution) (init curPathParts)
+    <span class="kw">else</span> reversePath rest (<span class="st">&quot;..&quot;</span> <span class="fu">:</span> solution) (curPathParts <span class="fu">++</span> [fst])
 </code></pre></body></html>
