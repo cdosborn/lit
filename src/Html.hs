@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Html (generate) where
+module Html (generate, rawGenerate) where
 
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
@@ -12,6 +12,7 @@ import Text.Blaze.Html.Renderer.Text (renderHtml)
 import Cheapskate (markdown, def)
 import Cheapskate.Html
 
+import qualified Code as C
 import Highlight
 import Types
 
@@ -21,6 +22,15 @@ generate maybeCss name chunks =
         lang = getLang name
         mergedProse = simplify chunks -- adjacent Prose combined to one prose
         body = H.preEscapedToHtml $ map (chunkToHtml lang) mergedProse
+        doc = preface maybeCss name body
+    in 
+        TL.toStrict $ renderHtml doc
+
+rawGenerate maybeCss name chunks =
+    let 
+        lang = getLang name
+        mergedProse = simplify chunks -- adjacent Prose combined to one prose
+        body = wrapInCodeBlock $ highlight lang $ C.generate chunks
         doc = preface maybeCss name body
     in 
         TL.toStrict $ renderHtml doc
@@ -44,6 +54,9 @@ preface maybeCss fileName bodyHtml =
             H.meta ! A.charset "UTF-8" 
             includeCss
         H.body $ do bodyHtml
+
+wrapInCodeBlock html = do
+    H.pre $ H.code $ html
 
 simplify :: [Chunk] -> [Chunk]
 simplify [] = []
@@ -87,6 +100,3 @@ headerToHtml name =  H.preEscapedToHtml $ "&lt;&lt; " <++> link <++> " &gt;&gt;=
 underscore :: T.Text -> T.Text
 underscore txt =
     T.pack $ concatMap (\c -> if c == ' ' then "_" else [c]) $ T.unpack txt
-
-
-

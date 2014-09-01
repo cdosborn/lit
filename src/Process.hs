@@ -28,9 +28,13 @@ process pipes file = do
 
 htmlPipeline dir mCss name enc = do
     maybeCss <- cssRelativeToOutput dir mCss
-    let path = (addTrailingPathSeparator dir) ++ name ++ ".html"
+    let prefix = addTrailingPathSeparator dir 
+        path =  prefix ++ name ++ ".html"
         output = Html.generate maybeCss name enc
+        rawPath =  prefix ++ name ++ ".raw.html"
+        rawOutput =  Html.rawGenerate maybeCss name enc
     writeFile path output
+    writeFile rawPath rawOutput
 
 mdPipeline dir css name enc = writeFile path output
     where
