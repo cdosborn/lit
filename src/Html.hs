@@ -12,7 +12,6 @@ import Text.Blaze.Html.Renderer.Text (renderHtml)
 import Cheapskate (markdown, def)
 import Cheapskate.Html
 
-import qualified Code as C
 import Highlight
 import Types
 
@@ -22,15 +21,6 @@ generate maybeCss name chunks =
         lang = getLang name
         mergedProse = simplify chunks -- adjacent Prose combined to one prose
         body = H.preEscapedToHtml $ map (chunkToHtml lang) mergedProse
-        doc = preface maybeCss name body
-    in 
-        TL.toStrict $ renderHtml doc
-
-rawGenerate maybeCss name chunks =
-    let 
-        lang = getLang name
-        mergedProse = simplify chunks -- adjacent Prose combined to one prose
-        body = wrapInCodeBlock $ highlight lang $ C.generate chunks
         doc = preface maybeCss name body
     in 
         TL.toStrict $ renderHtml doc
@@ -100,3 +90,53 @@ headerToHtml name =  H.preEscapedToHtml $ "&lt;&lt; " <++> link <++> " &gt;&gt;=
 underscore :: T.Text -> T.Text
 underscore txt =
     T.pack $ concatMap (\c -> if c == ' ' then "_" else [c]) $ T.unpack txt
+
+rawGenerate maybeCss name chunks =
+    let 
+        lang = getLang name
+        mergedProse = simplify chunks -- adjacent Prose combined to one prose
+        body = wrapInCodeBlock $ highlight lang $ rawExpand chunks
+        doc = preface maybeCss name body
+    in 
+        TL.toStrict $ renderHtml doc
+
+rawExpand :: [Chunk] -> T.Text
+rawExpand chunks =
+       let 
+           -- map (name, parts)
+           partMap = Map.fromList $ zip (map getName chunks) (map getParts chunks)
+           backup = getParts $ last chunks
+           parts = Map.lookupDefault backup "*" partMap 
+       in
+           rawExpandParts parts partMap
+
+rawExpandParts :: [Part] -> Map.HashMap T.Text [Part] -> T.Text
+rawExpandParts parts partMap =
+    let 
+        toText = (\part -> 
+            case part of
+            Code txt -> txt
+            Ref name -> rawExpandParts refParts partMap
+                where refParts = Map.lookupDefault [] (T.strip name) partMap)
+    in 
+        T.concat (map toText parts) `T.append` "\n"
+
+rawPreface :: Maybe String -> String -> H.Html -> H.Html
+rawPreface maybeCss fileName bodyHtml =
+    let 
+        cssPath = fromMaybe "" maybeCss
+        cssAttr = toValue cssPath
+        includeCss = 
+            if cssPath /= ""
+            then H.link ! A.rel "stylesheet" ! A.type_ "text/css" ! A.href cssAttr
+            else H.toHtml T.empty
+    in 
+        H.docTypeHtml $ do 
+        H.head $ do
+            H.title $ H.toHtml fileName
+            H.meta ! A.charset "UTF-8" 
+            includeCss
+        H.body $ do bodyHtml
+
+wrapInCodeBlock html = do
+    H.pre $ H.code $ html

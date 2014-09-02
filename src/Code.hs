@@ -39,6 +39,7 @@ expand chunks =
         parts = Map.lookupDefault backup "*" partMap 
     in
         expandParts parts partMap
+
 expandParts :: [Part] -> Map.HashMap T.Text [Part] -> T.Text
 expandParts parts partMap =
     let 
@@ -49,6 +50,3 @@ expandParts parts partMap =
                 where refParts = Map.lookupDefault [] (T.strip name) partMap)
     in 
         T.concat (map toText parts) `T.append` "\n"
-
-
-
