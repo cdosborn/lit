@@ -24,7 +24,7 @@ Each code chunk  stores a `[Part]`, which represent lines of code or macro refer
 of the form `<< name >>`.
     << datatypes >>=
     data Chunk = Def Int Text [Part] | Prose Text deriving (Show, Eq)
-    data Part = Code Text | Ref Text deriving (Show, Eq)
+    data Part = Code Text | Ref Text Text deriving (Show, Eq)
     type Program = [Chunk]
 
 A boolean check to differentiate between a `Prose` or `Def` chunk.

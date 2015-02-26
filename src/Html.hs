@@ -71,7 +71,7 @@ partToHtml :: String -> Part -> H.Html
 partToHtml lang part =
     case part of
     Code txt -> highlight lang txt
-    Ref txt -> H.preEscapedToHtml  ("&lt;&lt; " <++> link <++> " &gt;&gt;\n")
+    Ref txt indent -> H.preEscapedToHtml  (indent <++> "&lt;&lt; " <++> link <++> " &gt;&gt;\n")
         where
             link = "<a href=\"#" <++> underscored <++> "\">" <++> slim <++> "</a>"
             slim = T.strip txt

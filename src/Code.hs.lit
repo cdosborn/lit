@@ -98,7 +98,7 @@ to the first macro definition, and recursively expands the different parts of th
             backup = getParts $ last chunks
             parts = Map.lookupDefault backup "*" partMap 
         in
-            expandParts parts partMap
+            expandParts parts partMap T.empty
 
 `expand` from above relies on `expandParts` to actually perform the recursive lookup. Each
 call to `expandParts` returns text if the part is simply a code line (`Code line`) or the 
@@ -106,13 +106,13 @@ text which results from expanding a reference to its code lines. If the part is 
 `expandParts` looks up the name of the macro in the map, and proceeds to pull out the code lines
 in that macro. Refer to Types.hs for clarity on the different wrapper types mentioned here.
     << expand chunk references with chunks >>=
-    expandParts :: [Part] -> Map.HashMap T.Text [Part] -> T.Text
-    expandParts parts partMap =
+    expandParts :: [Part] -> Map.HashMap T.Text [Part] -> T.Text -> T.Text
+    expandParts parts partMap baseIndent =
         let 
             toText = (\part -> 
                 case part of
-                Code txt -> txt
-                Ref name -> expandParts refParts partMap
+                Code txt -> T.append baseIndent txt
+                Ref name indent -> expandParts refParts partMap (T.append baseIndent indent)
                     where refParts = Map.lookupDefault [] (T.strip name) partMap)
         in 
             T.concat (map toText parts) `T.append` "\n"
