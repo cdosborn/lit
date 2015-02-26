@@ -34,7 +34,7 @@ partToText :: String -> Part -> T.Text
 partToText lang part =
     case part of
     Code txt -> txt
-    Ref txt -> ("<< " <++> (T.strip txt) <++> " >>\n")
+    Ref txt indent -> (indent <++> "<< " <++> (T.strip txt) <++> " >>\n")
 
 
 
