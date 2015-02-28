@@ -1,12 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Process
 ( process
+, processPipe
 , htmlPipeline
 , mdPipeline
 , codePipeline ) where
 
-import Prelude hiding (readFile, writeFile)
-import Data.Text.IO (writeFile, readFile)
+import Prelude hiding (readFile, writeFile, getContents, putStr)
+import Data.Text.IO (writeFile, readFile, getContents, putStr)
 import System.FilePath.Posix (takeFileName, dropExtension)
 import System.Directory
 import System.FilePath.Posix
@@ -19,25 +20,34 @@ import Html
 import Markdown
 import Types
 
-process pipes file = do 
+process pipes file = do
     stream <- readFile file
-    encoded <- return $ encode stream 
-    mapM_ (\f -> f fileName encoded) pipes >> return ()
+    processString writeFile stream fileName pipes >> return ()
     where
         fileName = dropExtension $ takeFileName file
 
-htmlPipeline dir mCss name enc = do
+processPipe pipes = do
+    input <- getContents
+    processString writeStdout input "-" pipes >> return ()
+    where
+        writeStdout = (\name output -> putStr output)
+
+processString writeOutput input fileName pipes = do
+    encoded <- return $ encode input
+    mapM_ (\f -> f fileName encoded writeOutput) pipes >> return ()
+
+htmlPipeline dir mCss name enc writeOutput = do
     maybeCss <- cssRelativeToOutput dir mCss
     let path = (addTrailingPathSeparator dir) ++ name ++ ".html"
         output = Html.generate maybeCss name enc
-    writeFile path output
+    writeOutput path output
 
-mdPipeline dir css name enc = writeFile path output
+mdPipeline dir css name enc writeOutput = writeOutput path output
     where
         path = (addTrailingPathSeparator dir) ++ name ++ ".md"
         output = Markdown.generate name enc
 
-codePipeline dir css name enc = writeFile path output
+codePipeline dir css name enc writeOutput = writeOutput path output
     where
         path = (addTrailingPathSeparator dir) ++ name
         output = Code.generate enc
