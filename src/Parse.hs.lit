@@ -118,9 +118,10 @@ Parse a reference to a code chunk in the form `<< ... >>`
     << parse a reference subpart >>=
     varLine :: Parser Part
     varLine = do
+        indent <- packM =<< many ws
         name <- packM =<< between (string "<<") (string ">>") (many notDelim)
         newline
-        return $ Ref name
+        return $ Ref name indent
 
 Parse a line of code, an alias for grabLine
     << parse a code subpart >>=
