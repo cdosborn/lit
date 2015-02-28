@@ -17,6 +17,7 @@ data Options = Options  { optCodeDir  :: String
                         , optHtml     :: Bool
                         , optMarkdown :: Bool
                         , optWatch    :: Bool
+                        , optPipe     :: Bool
                         }
 
 startOptions :: Options
@@ -27,6 +28,7 @@ startOptions = Options  { optCodeDir  = "./"
                         , optHtml     = False
                         , optMarkdown = False
                         , optWatch    = False
+                        , optPipe     = False
                         }
 
 options :: [ OptDescr (Options -> IO Options) ]
@@ -48,6 +50,10 @@ options =
            (\arg opt -> return opt { optCss = Just arg })
            "FILE")
        "Specify a css file for html generation"
+
+    , Option "p" ["pipe"]
+       (NoArg (\opt -> return opt { optPipe = True }))
+       "Process stdin and write to stdout"
 
     , Option "" ["docs-dir"]
        (ReqArg
@@ -100,6 +106,7 @@ main = do
                 , optHtml     = html
                 , optCss      = mCss
                 , optWatch    = watching
+                , optPipe     = actAsPipe
                 } = opts 
     codeDirCheck <- doesDirectoryExist codeDir
     docsDirCheck <- doesDirectoryExist docsDir
@@ -110,9 +117,15 @@ main = do
         maybeWatch = if watching then Poll.watch else mapM_
         errors'  = if codeDirCheck then [] else ["Directory: " ++ codeDir ++ " does not exist\n"]
         errors'' = if docsDirCheck then [] else ["Directory: " ++ docsDir ++ " does not exist\n"]
-        allErr = errors ++ errors' ++ errors''
-    if allErr /= [] || (not html && not code && not markdown) || files == []
+        errors''' = if actAsPipe && (files /= [] || watching)
+            then ["--pipe is incompatible with --watch and input file names\n"]
+            else []
+        allErr = errors ++ errors' ++ errors'' ++ errors'''
+        processFn = if actAsPipe
+            then (\p _ -> Process.processPipe p)
+            else (\p f -> (maybeWatch (Process.process p)) f)
+    if allErr /= [] || (not html && not code && not markdown) || (files == [] && not actAsPipe)
         then hPutStrLn stderr ((concat allErr) ++ help) 
-        else (maybeWatch (Process.process pipes)) files
+        else processFn pipes files
 
 
