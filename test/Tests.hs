@@ -40,14 +40,10 @@ testDefPrecedeWithNL = TestCase $ assertEqual
     [Prose "\n",Prose "\n",Prose "\n",Def 4 "asdf" [Code "durp\n"]] $
     encode "\n\n\n  <<asdf>>=\n  durp\n"
 
-testIndentedMacro = TestCase $ assertEqual
-    "Indented macros are expanded"
-    encode "<<*>>=\n 
-
--- Processing
--- Pretty
--- Parse
+--testIndentedMacro = TestCase $ assertEqual
+--  "Indented macros are expanded"
 
 main = runTestTT $ TestList 
     [ testDef, testDefFollowedByTitle, testDefWithNewLines, testDefPrecedeWithNL 
+    --, testIndentedMacro
     , testProse, testProseOnlyNL ]
