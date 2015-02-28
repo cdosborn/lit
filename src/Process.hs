@@ -36,18 +36,18 @@ processString writeOutput input fileName pipes = do
     encoded <- return $ encode input
     mapM_ (\f -> f fileName encoded writeOutput) pipes >> return ()
 
-htmlPipeline dir mCss name enc writeOutput = do
+htmlPipeline dir mCss mLang name enc writeOutput = do
     maybeCss <- cssRelativeToOutput dir mCss
     let path = (addTrailingPathSeparator dir) ++ name ++ ".html"
-        output = Html.generate maybeCss name enc
+        output = Html.generate maybeCss mLang name enc
     writeOutput path output
 
-mdPipeline dir css name enc writeOutput = writeOutput path output
+mdPipeline dir css mLang name enc writeOutput = writeOutput path output
     where
         path = (addTrailingPathSeparator dir) ++ name ++ ".md"
-        output = Markdown.generate name enc
+        output = Markdown.generate mLang name enc
 
-codePipeline dir css name enc writeOutput = writeOutput path output
+codePipeline dir css mLang name enc writeOutput = writeOutput path output
     where
         path = (addTrailingPathSeparator dir) ++ name
         output = Code.generate enc

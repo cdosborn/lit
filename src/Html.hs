@@ -15,10 +15,10 @@ import Cheapskate.Html
 import Highlight
 import Types
 
-generate :: Maybe String -> String -> [Chunk] -> T.Text
-generate maybeCss name chunks = 
+generate :: Maybe String -> Maybe String -> String -> [Chunk] -> T.Text
+generate maybeCss maybeLang name chunks = 
     let 
-        lang = getLang name
+        lang = fromMaybe (getLang name) maybeLang
         mergedProse = simplify chunks -- adjacent Prose combined to one prose
         body = H.preEscapedToHtml $ map (chunkToHtml lang) mergedProse
         doc = preface maybeCss name body

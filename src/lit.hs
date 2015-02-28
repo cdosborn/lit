@@ -18,6 +18,7 @@ data Options = Options  { optCodeDir  :: String
                         , optMarkdown :: Bool
                         , optWatch    :: Bool
                         , optPipe     :: Bool
+                        , optLang     :: Maybe String
                         }
 
 startOptions :: Options
@@ -29,6 +30,7 @@ startOptions = Options  { optCodeDir  = "./"
                         , optMarkdown = False
                         , optWatch    = False
                         , optPipe     = False
+                        , optLang     = Nothing
                         }
 
 options :: [ OptDescr (Options -> IO Options) ]
@@ -54,6 +56,12 @@ options =
     , Option "p" ["pipe"]
        (NoArg (\opt -> return opt { optPipe = True }))
        "Process stdin and write to stdout"
+
+    , Option "" ["lang"]
+       (ReqArg
+           (\arg opt -> return opt { optLang = Just arg })
+           "Language")
+       "Specify language to use when doing code highlighting"
 
     , Option "" ["docs-dir"]
        (ReqArg
@@ -107,12 +115,13 @@ main = do
                 , optCss      = mCss
                 , optWatch    = watching
                 , optPipe     = actAsPipe
+                , optLang     = mLang
                 } = opts 
     codeDirCheck <- doesDirectoryExist codeDir
     docsDirCheck <- doesDirectoryExist docsDir
-    let htmlPipe = if html     then [Process.htmlPipeline docsDir mCss] else []
-        mdPipe   = if markdown then [Process.mdPipeline   docsDir mCss] else []
-        codePipe = if code     then [Process.codePipeline codeDir mCss] else []
+    let htmlPipe = if html     then [Process.htmlPipeline docsDir mCss mLang] else []
+        mdPipe   = if markdown then [Process.mdPipeline   docsDir mCss mLang] else []
+        codePipe = if code     then [Process.codePipeline codeDir mCss mLang] else []
         pipes = htmlPipe ++ mdPipe ++ codePipe 
         maybeWatch = if watching then Poll.watch else mapM_
         errors'  = if codeDirCheck then [] else ["Directory: " ++ codeDir ++ " does not exist\n"]

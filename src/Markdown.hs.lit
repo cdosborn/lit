@@ -23,6 +23,7 @@ Markdown only exports `generate` akin to Code and Html, the other output modules
 Markdown performs little processing and as a result has light dependencies. 
 In Markdown, `getLang` is used to to label code blocks with a language.
     << import modules >>=
+    import Data.Maybe (fromMaybe)
     import qualified Data.Text as T
 
     import Types
@@ -32,10 +33,10 @@ In Markdown, `getLang` is used to to label code blocks with a language.
 before calling `generate` to make the markdown file from a `lit` file. `generate` returns
 the union of all the transformed markdown `Chunk`s.
     << generate markdown document from chunks >>=
-    generate :: String -> [Chunk] -> T.Text
-    generate name chunks = 
+    generate :: Maybe String -> String -> [Chunk] -> T.Text
+    generate maybeLang name chunks = 
         let 
-            lang = getLang name
+            lang = fromMaybe (getLang name) maybeLang
             toMarkDown = chunkToMarkdown lang
         in
             T.concat $ map toMarkDown chunks
