@@ -44,10 +44,10 @@ before calling `generate` to make the Html file from a `lit` file. It performs t
 2. [Convert](#transform_a_chunk_to_html) each `Chunk` to html
 3. [Preface](#preface_the_html_with_the_head_tag) the html with proper Doctype/Head/Meta
     << generate html document from chunks >>=
-    generate :: Maybe String -> String -> [Chunk] -> T.Text
-    generate maybeCss name chunks = 
+    generate :: Maybe String -> Maybe String -> String -> [Chunk] -> T.Text
+    generate maybeCss maybeLang name chunks = 
         let 
-            lang = getLang name
+            lang = fromMaybe (getLang name) maybeLang
             mergedProse = simplify chunks -- adjacent Prose combined to one prose
             body = H.preEscapedToHtml $ map (chunkToHtml lang) mergedProse
             doc = preface maybeCss name body
@@ -133,7 +133,7 @@ line of code is simply highlighted.
     partToHtml lang part =
         case part of
         Code txt -> highlight lang txt
-        Ref txt -> H.preEscapedToHtml  ("&lt;&lt; " <++> link <++> " &gt;&gt;\n")
+        Ref txt indent -> H.preEscapedToHtml  (indent <++> "&lt;&lt; " <++> link <++> " &gt;&gt;\n")
             where
                 link = "<a href=\"#" <++> underscored <++> "\">" <++> slim <++> "</a>"
                 slim = T.strip txt

@@ -50,9 +50,10 @@ part indent =
 
 varLine :: Parser Part
 varLine = do
+    indent <- packM =<< many ws
     name <- packM =<< between (string "<<") (string ">>") (many notDelim)
     newline
-    return $ Ref name
+    return $ Ref name indent
 
 defLine :: Parser Part
 defLine = do

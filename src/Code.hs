@@ -38,14 +38,14 @@ expand chunks =
         backup = getParts $ last chunks
         parts = Map.lookupDefault backup "*" partMap 
     in
-        expandParts parts partMap
-expandParts :: [Part] -> Map.HashMap T.Text [Part] -> T.Text
-expandParts parts partMap =
+        expandParts parts partMap T.empty
+expandParts :: [Part] -> Map.HashMap T.Text [Part] -> T.Text -> T.Text
+expandParts parts partMap baseIndent =
     let 
         toText = (\part -> 
             case part of
-            Code txt -> txt
-            Ref name -> expandParts refParts partMap
+            Code txt -> T.append baseIndent txt
+            Ref name indent -> expandParts refParts partMap (T.append baseIndent indent)
                 where refParts = Map.lookupDefault [] (T.strip name) partMap)
     in 
         T.concat (map toText parts) `T.append` "\n"

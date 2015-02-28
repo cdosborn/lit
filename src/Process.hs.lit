@@ -11,6 +11,8 @@ An overview of the file:
     << define Process module >>
     << import modules >>
     << process a single file >>
+    << process stdin to stdout >>
+    << process a string >>
     << helper functions >>
 
 Process exports the pipelines so they can be *preconfigured*. In `lit.hs`, the pipelines are curried with the output directory corresponding to their type, and with the optional css path. The `process` function depends on being called with preconfigured pipes.     
@@ -18,14 +20,15 @@ Process exports the pipelines so they can be *preconfigured*. In `lit.hs`, the p
     {-# LANGUAGE OverloadedStrings #-}
     module Process
     ( process
+    , processPipe
     , htmlPipeline
     , mdPipeline
     , codePipeline ) where
 
 Besides the reading and writing file utilities, each output format is contained in a module which specifies a `generate` function. Ex. `Html.generate` renders the parsed `.lit` file as `Text`.
     << import modules >>=
-    import Prelude hiding (readFile, writeFile)
-    import Data.Text.IO (writeFile, readFile)
+    import Prelude hiding (readFile, writeFile, getContents, putStr)
+    import Data.Text.IO (writeFile, readFile, getContents, putStr)
     import System.FilePath.Posix (takeFileName, dropExtension)
     import System.Directory
     import System.FilePath.Posix
@@ -38,14 +41,31 @@ Besides the reading and writing file utilities, each output format is contained 
     import Markdown
     import Types
 
-Process as a library accompolishes the primary goals through the `process` function. After reading the file, `encode` parses the file into `[Chunks]` (see [Types.hs](Types.hs.html) for more about the data structure). Lastly, each pipeline function in the list of `pipes` is applied to the data structure. Each pipeline takes a `[Chunks]` and writes a file. 
+Process as a library accompolishes the primary goals through the `processString` function. The input string is passed to `encode`, which parses it into `[Chunks]` (see [Types.hs](Types.hs.html) for more about the data structure). Lastly, each pipeline function in the list of `pipes` is applied to the data structure. Each pipeline takes a `[Chunks]` and calls the `writeOutput` function, specifying the desired filename and the processed text.
+    << process a string >>=
+    processString writeOutput input fileName pipes = do
+        encoded <- return $ encode input
+        mapM_ (\f -> f fileName encoded writeOutput) pipes >> return ()
+
+The most common way to call `processString` is with a file. The file contents is
+read and processed, then the output is written to the file specified by the
+processor (using the `writeFile` function from `Data.Text.IO`).
     << process a single file >>=
-    process pipes file = do 
+    process pipes file = do
         stream <- readFile file
-        encoded <- return $ encode stream 
-        mapM_ (\f -> f fileName encoded) pipes >> return ()
+        processString writeFile stream fileName pipes >> return ()
         where
             fileName = dropExtension $ takeFileName file
+
+When requested `lit` will operate as a pipe processor. The processing of the
+text proceeds as in `process`, but the input comes from `stdin` and the output
+function just dumps the result to `stdout` (ignoring the requested file name).
+    << process stdin to stdout >>=
+    processPipe pipes = do
+        input <- getContents
+        processString writeStdout input "-" pipes >> return ()
+        where
+            writeStdout = (\name output -> putStr output)
 
 Beside the main function `process`. Process as a module defines several useful pipelines (function transforms chained together). Each pipeline can be generalized in the following way.
 
@@ -60,20 +80,20 @@ Beside the main function `process`. Process as a module defines several useful p
     << html helpers >>
 
     << html pipeline >>=
-    htmlPipeline dir mCss name enc = do
+    htmlPipeline dir mCss mLang name enc writeOutput = do
         maybeCss <- cssRelativeToOutput dir mCss
         let path = (addTrailingPathSeparator dir) ++ name ++ ".html"
-            output = Html.generate maybeCss name enc
-        writeFile path output
+            output = Html.generate maybeCss mLang name enc
+        writeOutput path output
 
     << markdown pipeline >>=
-    mdPipeline dir css name enc = writeFile path output
+    mdPipeline dir css mLang name enc writeOutput = writeOutput path output
         where
             path = (addTrailingPathSeparator dir) ++ name ++ ".md"
-            output = Markdown.generate name enc
+            output = Markdown.generate mLang name enc
 
     << code pipeline >>=
-    codePipeline dir css name enc = writeFile path output
+    codePipeline dir css mLang name enc writeOutput = writeOutput path output
         where
             path = (addTrailingPathSeparator dir) ++ name
             output = Code.generate enc
