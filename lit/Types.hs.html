@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html><head><title>Types.hs</title><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="../src/../css/default.css"></head><body><h1><a href="root.html">/ </a>Types.hs - the types for a parsed <code>lit</code> file</h1>
+<html><head><title>Types.hs</title><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="../css/default.css"></head><body><h1><a href="root.html">/ </a>Types.hs - the types for a parsed <code>lit</code> file</h1>
 <p>Types defines container types for storing a parsed <code>lit</code> file.</p>
 <p>An overview of the file:</p>
 <pre><code>&lt;&lt; <a id="*" href="#*">*</a> &gt;&gt;=
@@ -20,7 +20,7 @@ Each code chunk stores a <code>[Part]</code>, which represent lines of code or m
 of the form <code>&lt;&lt; name &gt;&gt;</code>.</p>
 <pre><code>&lt;&lt; <a id="datatypes" href="#datatypes">datatypes</a> &gt;&gt;=
 <span class="kw">data</span> <span class="dt">Chunk</span> <span class="fu">=</span> <span class="dt">Def</span> <span class="dt">Int</span> <span class="dt">Text</span> [<span class="dt">Part</span>] <span class="fu">|</span> <span class="dt">Prose</span> <span class="dt">Text</span> <span class="kw">deriving</span> (<span class="dt">Show</span>, <span class="dt">Eq</span>)
-<span class="kw">data</span> <span class="dt">Part</span> <span class="fu">=</span> <span class="dt">Code</span> <span class="dt">Text</span> <span class="fu">|</span> <span class="dt">Ref</span> <span class="dt">Text</span> <span class="kw">deriving</span> (<span class="dt">Show</span>, <span class="dt">Eq</span>)
+<span class="kw">data</span> <span class="dt">Part</span> <span class="fu">=</span> <span class="dt">Code</span> <span class="dt">Text</span> <span class="fu">|</span> <span class="dt">Ref</span> <span class="dt">Text</span> <span class="dt">Text</span> <span class="kw">deriving</span> (<span class="dt">Show</span>, <span class="dt">Eq</span>)
 <span class="kw">type</span> <span class="dt">Program</span> <span class="fu">=</span> [<span class="dt">Chunk</span>]
 </code></pre><p>A boolean check to differentiate between a <code>Prose</code> or <code>Def</code> chunk.</p>
 <pre><code>&lt;&lt; <a id="access_methods_for_types" href="#access_methods_for_types">access methods for types</a> &gt;&gt;=

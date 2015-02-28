@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html><head><title>Markdown.hs</title><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="../src/../css/default.css"></head><body><h1><a href="root.html">/ </a>Markdown.hs - generates markdown from a <code>lit</code> file</h1>
+<html><head><title>Markdown.hs</title><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="../css/default.css"></head><body><h1><a href="root.html">/ </a>Markdown.hs - generates markdown from a <code>lit</code> file</h1>
 <p>Markdown is a module which transforms the main data structure for a parsed
 <code>lit</code> file into markdown. The main motivation for markdown as a supported
 document is to enable users to render <code>lit</code> files with existing <code>Markdown</code> engines.
@@ -71,5 +71,5 @@ macro syntax <code>&lt;&lt; ... &gt;&gt;</code>.</p>
 partToText lang part <span class="fu">=</span>
     <span class="kw">case</span> part <span class="kw">of</span>
     <span class="dt">Code</span> txt <span class="ot">-&gt;</span> txt
-    <span class="dt">Ref</span> txt <span class="ot">-&gt;</span> (<span class="st">&quot;&lt;&lt; &quot;</span> <span class="fu">&lt;++&gt;</span> (T.strip txt) <span class="fu">&lt;++&gt;</span> <span class="st">&quot; &gt;&gt;\n&quot;</span>)
+    <span class="dt">Ref</span> txt indent <span class="ot">-&gt;</span> (indent <span class="fu">&lt;++&gt;</span> <span class="st">&quot;&lt;&lt; &quot;</span> <span class="fu">&lt;++&gt;</span> (T.strip txt) <span class="fu">&lt;++&gt;</span> <span class="st">&quot; &gt;&gt;\n&quot;</span>)
 </code></pre></body></html>

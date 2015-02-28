@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html><head><title>Html.hs</title><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="../src/../css/default.css"></head><body><h1><a href="root.html">/ </a>Html.hs - generates Html from a <code>lit</code> file</h1>
+<html><head><title>Html.hs</title><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="../css/default.css"></head><body><h1><a href="root.html">/ </a>Html.hs - generates Html from a <code>lit</code> file</h1>
 <p>Html is a module which transforms the main data structure for a parsed
 <code>lit</code> file into Html. Html renders the narrative from markdown to Html
 and introduces anchors to refer back and forth from macros references
@@ -124,7 +124,7 @@ line of code is simply highlighted.</p>
 partToHtml lang part <span class="fu">=</span>
     <span class="kw">case</span> part <span class="kw">of</span>
     <span class="dt">Code</span> txt <span class="ot">-&gt;</span> highlight lang txt
-    <span class="dt">Ref</span> txt <span class="ot">-&gt;</span> H.preEscapedToHtml  (<span class="st">&quot;&amp;lt;&amp;lt; &quot;</span> <span class="fu">&lt;++&gt;</span> link <span class="fu">&lt;++&gt;</span> <span class="st">&quot; &amp;gt;&amp;gt;\n&quot;</span>)
+    <span class="dt">Ref</span> txt indent <span class="ot">-&gt;</span> H.preEscapedToHtml  (indent <span class="fu">&lt;++&gt;</span> <span class="st">&quot;&amp;lt;&amp;lt; &quot;</span> <span class="fu">&lt;++&gt;</span> link <span class="fu">&lt;++&gt;</span> <span class="st">&quot; &amp;gt;&amp;gt;\n&quot;</span>)
         <span class="kw">where</span>
             link <span class="fu">=</span> <span class="st">&quot;&lt;a href=\&quot;#&quot;</span> <span class="fu">&lt;++&gt;</span> underscored <span class="fu">&lt;++&gt;</span> <span class="st">&quot;\&quot;&gt;&quot;</span> <span class="fu">&lt;++&gt;</span> slim <span class="fu">&lt;++&gt;</span> <span class="st">&quot;&lt;/a&gt;&quot;</span>
             slim <span class="fu">=</span> T.strip txt

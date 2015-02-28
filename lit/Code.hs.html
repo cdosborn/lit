@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html><head><title>Code.hs</title><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="../src/../css/default.css"></head><body><h1><a href="root.html">/ </a>Code.hs - generates the Code from a literate file</h1>
+<html><head><title>Code.hs</title><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="../css/default.css"></head><body><h1><a href="root.html">/ </a>Code.hs - generates the Code from a literate file</h1>
 <p>Code is a module which transforms the main data structure
 for a parsed <code>lit</code> file into the actual source. By expanding all
 macros and ignoring the narrative, the Code module produces the
@@ -87,20 +87,20 @@ expand chunks <span class="fu">=</span>
         backup <span class="fu">=</span> getParts <span class="fu">$</span> last chunks
         parts <span class="fu">=</span> Map.lookupDefault backup <span class="st">&quot;*&quot;</span> partMap 
     <span class="kw">in</span>
-        expandParts parts partMap
+        expandParts parts partMap T.empty
 </code></pre><p><code>expand</code> from above relies on <code>expandParts</code> to actually perform the recursive lookup. Each
 call to <code>expandParts</code> returns text if the part is simply a code line (<code>Code line</code>) or the
 text which results from expanding a reference to its code lines. If the part is a reference (<code>Ref name</code>),
 <code>expandParts</code> looks up the name of the macro in the map, and proceeds to pull out the code lines
 in that macro. Refer to Types.hs for clarity on the different wrapper types mentioned here.</p>
 <pre><code>&lt;&lt; <a id="expand_chunk_references_with_chunks" href="#expand_chunk_references_with_chunks">expand chunk references with chunks</a> &gt;&gt;=
-<span class="ot">expandParts ::</span> [<span class="dt">Part</span>] <span class="ot">-&gt;</span> <span class="dt">Map.HashMap</span> <span class="dt">T.Text</span> [<span class="dt">Part</span>] <span class="ot">-&gt;</span> <span class="dt">T.Text</span>
-expandParts parts partMap <span class="fu">=</span>
+<span class="ot">expandParts ::</span> [<span class="dt">Part</span>] <span class="ot">-&gt;</span> <span class="dt">Map.HashMap</span> <span class="dt">T.Text</span> [<span class="dt">Part</span>] <span class="ot">-&gt;</span> <span class="dt">T.Text</span> <span class="ot">-&gt;</span> <span class="dt">T.Text</span>
+expandParts parts partMap baseIndent <span class="fu">=</span>
     <span class="kw">let</span> 
         toText <span class="fu">=</span> (\part <span class="ot">-&gt;</span> 
             <span class="kw">case</span> part <span class="kw">of</span>
-            <span class="dt">Code</span> txt <span class="ot">-&gt;</span> txt
-            <span class="dt">Ref</span> name <span class="ot">-&gt;</span> expandParts refParts partMap
+            <span class="dt">Code</span> txt <span class="ot">-&gt;</span> T.append baseIndent txt
+            <span class="dt">Ref</span> name indent <span class="ot">-&gt;</span> expandParts refParts partMap (T.append baseIndent indent)
                 <span class="kw">where</span> refParts <span class="fu">=</span> Map.lookupDefault [] (T.strip name) partMap)
     <span class="kw">in</span> 
         T.concat (map toText parts) <span class="ot">`T.append`</span> <span class="st">&quot;\n&quot;</span>

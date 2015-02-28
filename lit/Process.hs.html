@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html><head><title>Process.hs</title><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="../src/../css/default.css"></head><body><h1><a href="root.html">/ </a>Process.hs - links <code>lit</code>'s command line interface and file generation</h1>
+<html><head><title>Process.hs</title><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="../css/default.css"></head><body><h1><a href="root.html">/ </a>Process.hs - links <code>lit</code>'s command line interface and file generation</h1>
 <p>Process unifies the different ways that <code>lit</code> can produce files. Here are the goals:</p>
 <ol>
 <li>Parse a file into a data structure</li>
@@ -24,8 +24,9 @@
 <pre><code>&lt;&lt; <a id="import_modules" href="#import_modules">import modules</a> &gt;&gt;=
 <span class="kw">import </span><span class="dt">Prelude</span> <span class="kw">hiding</span> (readFile, writeFile)
 <span class="kw">import </span><span class="dt">Data.Text.IO</span> (writeFile, readFile)
-<span class="kw">import </span><span class="dt">System.FilePath.Posix</span>
+<span class="kw">import </span><span class="dt">System.FilePath.Posix</span> (takeFileName, dropExtension)
 <span class="kw">import </span><span class="dt">System.Directory</span>
+<span class="kw">import </span><span class="dt">System.FilePath.Posix</span>
 <span class="kw">import </span><span class="dt">Data.List</span> (intercalate)
 <span class="kw">import qualified</span> <span class="dt">Data.Text</span> <span class="kw">as</span> <span class="dt">T</span>
 

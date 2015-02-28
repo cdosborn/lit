@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html><head><title>Parse.hs</title><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="../src/../css/default.css"></head><body><h1><a href="root.html">/ </a>Parse.hs - transforms a <code>lit</code> story into a data structure</h1>
+<html><head><title>Parse.hs</title><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="../css/default.css"></head><body><h1><a href="root.html">/ </a>Parse.hs - transforms a <code>lit</code> story into a data structure</h1>
 <p>Parse defines a bunch of smaller parsers that in conjunction
 can be used to parse an entire literate file in the form of <code>Text</code>.
 Parse does the bare minimum in assembling the data structure,
@@ -102,9 +102,10 @@ part indent <span class="fu">=</span>
 <pre><code>&lt;&lt; <a id="parse_a_reference_subpart" href="#parse_a_reference_subpart">parse a reference subpart</a> &gt;&gt;=
 <span class="ot">varLine ::</span> <span class="dt">Parser</span> <span class="dt">Part</span>
 varLine <span class="fu">=</span> <span class="kw">do</span>
+    indent <span class="ot">&lt;-</span> packM <span class="fu">=&lt;&lt;</span> many ws
     name <span class="ot">&lt;-</span> packM <span class="fu">=&lt;&lt;</span> between (string <span class="st">&quot;&lt;&lt;&quot;</span>) (string <span class="st">&quot;&gt;&gt;&quot;</span>) (many notDelim)
     newline
-    return <span class="fu">$</span> <span class="dt">Ref</span> name
+    return <span class="fu">$</span> <span class="dt">Ref</span> name indent
 </code></pre><p>Parse a line of code, an alias for grabLine</p>
 <pre><code>&lt;&lt; <a id="parse_a_code_subpart" href="#parse_a_code_subpart">parse a code subpart</a> &gt;&gt;=
 <span class="ot">defLine ::</span> <span class="dt">Parser</span> <span class="dt">Part</span>
