@@ -1,15 +1,16 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Markdown ( generate ) where
 
+import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 
 import Types
 import Highlight (getLang)
 
-generate :: String -> [Chunk] -> T.Text
-generate name chunks = 
+generate :: Maybe String -> String -> [Chunk] -> T.Text
+generate maybeLang name chunks = 
     let 
-        lang = getLang name
+        lang = fromMaybe (getLang name) maybeLang
         toMarkDown = chunkToMarkdown lang
     in
         T.concat $ map toMarkDown chunks

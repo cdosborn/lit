@@ -39,6 +39,8 @@ A high-level overview of `lit.hs`:
                             , optHtml     :: Bool
                             , optMarkdown :: Bool
                             , optWatch    :: Bool
+                            , optPipe     :: Bool
+                            , optLang     :: Maybe String
                             }
 
     << default options >>=
@@ -50,6 +52,8 @@ A high-level overview of `lit.hs`:
                             , optHtml     = False
                             , optMarkdown = False
                             , optWatch    = False
+                            , optPipe     = False
+                            , optLang     = Nothing
                             }
 
 `options` is a list of monadic functions, which are applied to the options passed as arguments to `lit`. `options` provides the general program flow for argument handling.
@@ -73,6 +77,16 @@ A high-level overview of `lit.hs`:
                (\arg opt -> return opt { optCss = Just arg })
                "FILE")
            "Specify a css file for html generation"
+    
+        , Option "p" ["pipe"]
+           (NoArg (\opt -> return opt { optPipe = True }))
+           "Process stdin and write to stdout"
+    
+        , Option "" ["lang"]
+           (ReqArg
+               (\arg opt -> return opt { optLang = Just arg })
+               "Language")
+           "Specify language to use when doing code highlighting"
     
         , Option "" ["docs-dir"]
            (ReqArg
@@ -131,6 +145,8 @@ After interpreting the arguments, `foldl` threads the default options through ea
                     , optHtml     = html
                     , optCss      = mCss
                     , optWatch    = watching
+                    , optPipe     = actAsPipe
+                    , optLang     = mLang
                     } = opts 
 
 A brief check to ensure that the directories actually exist for the given strings. This prevents ambiguous errors about writing to invalid paths.
@@ -140,17 +156,23 @@ A brief check to ensure that the directories actually exist for the given string
 
 Based on the conditions, we prepare part of the pipeline (the rest occurs in Process.hs) for generating (html/markdown/code). This block aims to gather all the pipes and program errors necessary for determining whether to process or exit. `maybeWatch` determines whether the files should be directly passed through the pipes via `mapM_` or whether `Poll.watch` should manage the pipelines whenever the underlying files change.
     << main >>=
-        let htmlPipe = if html     then [Process.htmlPipeline docsDir mCss] else []
-            mdPipe   = if markdown then [Process.mdPipeline   docsDir mCss] else []
-            codePipe = if code     then [Process.codePipeline codeDir mCss] else []
+        let htmlPipe = if html     then [Process.htmlPipeline docsDir mCss mLang] else []
+            mdPipe   = if markdown then [Process.mdPipeline   docsDir mCss mLang] else []
+            codePipe = if code     then [Process.codePipeline codeDir mCss mLang] else []
             pipes = htmlPipe ++ mdPipe ++ codePipe 
             maybeWatch = if watching then Poll.watch else mapM_
             errors'  = if codeDirCheck then [] else ["Directory: " ++ codeDir ++ " does not exist\n"]
             errors'' = if docsDirCheck then [] else ["Directory: " ++ docsDir ++ " does not exist\n"]
-            allErr = errors ++ errors' ++ errors''
+            errors''' = if actAsPipe && (files /= [] || watching)
+                then ["--pipe is incompatible with --watch and input file names\n"]
+                else []
+            allErr = errors ++ errors' ++ errors'' ++ errors'''
+            processFn = if actAsPipe
+                then (\p _ -> Process.processPipe p)
+                else (\p f -> (maybeWatch (Process.process p)) f)
 
 In the final call of main, either the programs prints [errors](#usage%20messages) or redirects the program flow with `maybeWatch`. The bulk of the file processing is passed to the `Process.hs` [module](Process.hs.html).
     << main >>=
-        if allErr /= [] || (not html && not code && not markdown) || files == []
+        if allErr /= [] || (not html && not code && not markdown) || (files == [] && not actAsPipe)
             then hPutStrLn stderr ((concat allErr) ++ help) 
-            else (maybeWatch (Process.process pipes)) files
+            else processFn pipes files
