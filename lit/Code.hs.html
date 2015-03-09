@@ -23,7 +23,7 @@ macro references and joining macro extensions.</p>
 Despite being of type <code>Chunk</code> all values constructed from <code>Prose</code> are ignored leaving
 only <code>Def</code>. For more information on types see Types.hs</p>
 <pre><code>&lt;&lt; <a id="import_modules" href="#import_modules">import modules</a> &gt;&gt;=
-<span class="kw">import </span><span class="dt">Data.List</span> (partition)
+<span class="kw">import </span><span class="dt">Data.List</span> (partition, intersperse)
 <span class="kw">import qualified</span> <span class="dt">Data.HashMap.Strict</span> <span class="kw">as</span> <span class="dt">Map</span>
 <span class="kw">import qualified</span> <span class="dt">Data.Text</span> <span class="kw">as</span> <span class="dt">T</span>
 
@@ -74,8 +74,8 @@ combineChunks l<span class="fu">@</span>(c<span class="fu">:</span>cs) <span cla
         name <span class="fu">=</span> getName c
         line <span class="fu">=</span> getLineNo c
 </code></pre><p><code>expand</code> assumes a list of only <code>Def</code> of type <code>Chunk</code> which hold the actual code
-or references to other 'Def' which hold code. First it creates a map of (macro name, macro)
-of more precisely (<code>Text</code>,<code>Chunk</code>). It then searches for the root macro name <code>*</code>, resorting
+or references to other 'Def' which hold code. First it creates a map of (macro name, macro contents)
+of more precisely (<code>Text</code>,<code>[Part]</code>). It then searches for the root macro name <code>*</code>, resorting
 to the first macro definition, and recursively expands the different parts of the root.
 (<code>&lt;&lt; * &gt;&gt;=</code>) to begin expansion</p>
 <pre><code>&lt;&lt; <a id="expand_chunk_references_with_chunks" href="#expand_chunk_references_with_chunks">expand chunk references with chunks</a> &gt;&gt;=
@@ -83,14 +83,31 @@ to the first macro definition, and recursively expands the different parts of th
 expand chunks <span class="fu">=</span>
     <span class="kw">let</span> 
         <span class="co">-- map (name, parts)</span>
-        partMap <span class="fu">=</span> Map.fromList <span class="fu">$</span> zip (map getName chunks) (map getParts chunks)
+        partMap <span class="fu">=</span> Map.fromList <span class="fu">$</span> zip (map getName chunks) (map (simplify<span class="fu">.</span> getParts) chunks)
         backup <span class="fu">=</span> getParts <span class="fu">$</span> last chunks
         parts <span class="fu">=</span> Map.lookupDefault backup <span class="st">&quot;*&quot;</span> partMap 
     <span class="kw">in</span>
         expandParts parts partMap T.empty
+</code></pre><p>When <code>expand</code> is generating the map of (macro name, macro contents). It simplifies the macro contents
+by merging adjacent Code parts into a single Code part. This is a necessary step, because of how <code>lit</code>
+intersperses newlines in the expanded macros.</p>
+<pre><code>&lt;&lt; <a id="expand_chunk_references_with_chunks" href="#expand_chunk_references_with_chunks">expand chunk references with chunks</a> &gt;&gt;=
+<span class="ot">simplify ::</span> [<span class="dt">Part</span>] <span class="ot">-&gt;</span> [<span class="dt">Part</span>]
+simplify [] <span class="fu">=</span> []
+simplify parts <span class="fu">=</span>
+    <span class="kw">let</span> 
+        (codeParts, others) <span class="fu">=</span> break isRef parts
+        (refParts, rest) <span class="fu">=</span> span isRef others
+    <span class="kw">in</span> 
+        refParts <span class="fu">++</span> (combineCodeParts codeParts) <span class="fu">++</span>  (simplify rest)
+</code></pre><p><code>combineCodeParts</code> takes a list of Code parts and returns a list of a single merged Code part</p>
+<pre><code>&lt;&lt; <a id="expand_chunk_references_with_chunks" href="#expand_chunk_references_with_chunks">expand chunk references with chunks</a> &gt;&gt;=
+<span class="ot">combineCodeParts ::</span> [<span class="dt">Part</span>] <span class="ot">-&gt;</span> [<span class="dt">Part</span>]
+combineCodeParts [] <span class="fu">=</span> []
+combineCodeParts parts <span class="fu">=</span> [<span class="dt">Code</span> (T.concat (map getCodeText parts))]
 </code></pre><p><code>expand</code> from above relies on <code>expandParts</code> to actually perform the recursive lookup. Each
-call to <code>expandParts</code> returns text if the part is simply a code line (<code>Code line</code>) or the
-text which results from expanding a reference to its code lines. If the part is a reference (<code>Ref name</code>),
+call to <code>expandParts</code> returns text for parts that are simply blocks of code or text which results
+from expanding references to their appropriate code blocks. If the part is a reference (<code>Ref name</code>),
 <code>expandParts</code> looks up the name of the macro in the map, and proceeds to pull out the code lines
 in that macro. Refer to Types.hs for clarity on the different wrapper types mentioned here.</p>
 <pre><code>&lt;&lt; <a id="expand_chunk_references_with_chunks" href="#expand_chunk_references_with_chunks">expand chunk references with chunks</a> &gt;&gt;=
@@ -100,8 +117,8 @@ expandParts parts partMap baseIndent <span class="fu">=</span>
         toText <span class="fu">=</span> (\part <span class="ot">-&gt;</span> 
             <span class="kw">case</span> part <span class="kw">of</span>
             <span class="dt">Code</span> txt <span class="ot">-&gt;</span> T.append baseIndent txt
-            <span class="dt">Ref</span> name indent <span class="ot">-&gt;</span> expandParts refParts partMap (T.append baseIndent indent)
+            <span class="dt">Ref</span> name indent <span class="ot">-&gt;</span> (expandParts refParts partMap (T.append baseIndent indent))
                 <span class="kw">where</span> refParts <span class="fu">=</span> Map.lookupDefault [] (T.strip name) partMap)
     <span class="kw">in</span> 
-        T.concat (map toText parts) <span class="ot">`T.append`</span> <span class="st">&quot;\n&quot;</span>
+        T.concat <span class="fu">$</span> intersperse <span class="st">&quot;\n&quot;</span> (map toText parts)
 </code></pre></body></html>

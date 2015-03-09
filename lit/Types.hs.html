@@ -28,12 +28,24 @@ isDef chunk <span class="fu">=</span>
     <span class="kw">case</span> chunk <span class="kw">of</span>
     <span class="dt">Def</span> _ _ _ <span class="ot">-&gt;</span> <span class="dt">True</span>
     <span class="dt">Prose</span> _ <span class="ot">-&gt;</span> <span class="dt">False</span>
+</code></pre><p>A boolean check to differentiate between a <code>Ref</code> or <code>Code</code> part.</p>
+<pre><code>&lt;&lt; <a id="access_methods_for_types" href="#access_methods_for_types">access methods for types</a> &gt;&gt;=
+isRef part <span class="fu">=</span>
+    <span class="kw">case</span> part <span class="kw">of</span>
+    <span class="dt">Ref</span> _ _ <span class="ot">-&gt;</span> <span class="dt">True</span>
+    _ <span class="ot">-&gt;</span> <span class="dt">False</span>
 </code></pre><p>Retrieve the macro name.</p>
 <pre><code>&lt;&lt; <a id="access_methods_for_types" href="#access_methods_for_types">access methods for types</a> &gt;&gt;=
 getName chunk <span class="fu">=</span>
     <span class="kw">case</span> chunk <span class="kw">of</span>
     <span class="dt">Def</span> _ name _ <span class="ot">-&gt;</span> name
     _ <span class="ot">-&gt;</span> error <span class="st">&quot;cannot retrieve name, not a def&quot;</span>
+</code></pre><p>Retrieve the text of the code part (the non macro references in a chunk).</p>
+<pre><code>&lt;&lt; <a id="access_methods_for_types" href="#access_methods_for_types">access methods for types</a> &gt;&gt;=
+getCodeText part <span class="fu">=</span> 
+    <span class="kw">case</span> part <span class="kw">of</span>
+    <span class="dt">Code</span> txt <span class="ot">-&gt;</span> txt
+    _ <span class="ot">-&gt;</span> error <span class="st">&quot;cannot retrieve text, not a code part&quot;</span>
 </code></pre><p>Retrieve the list of code lines and macro references.</p>
 <pre><code>&lt;&lt; <a id="access_methods_for_types" href="#access_methods_for_types">access methods for types</a> &gt;&gt;=
 getParts chunk <span class="fu">=</span>
