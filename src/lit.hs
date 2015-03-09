@@ -82,7 +82,6 @@ options =
        "Display help"
     ]
 
-
 usage = "Usage: lit OPTIONS... FILES..."
 help = "Try:   lit --help"
 
@@ -114,5 +113,3 @@ main = do
     if allErr /= [] || (not html && not code && not markdown) || files == []
         then hPutStrLn stderr ((concat allErr) ++ help) 
         else (maybeWatch (Process.process pipes)) files
-
-

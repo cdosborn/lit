@@ -66,6 +66,3 @@ reversePath (fst:rest) solution curPathParts =
     if fst == ".."
     then reversePath rest ((last curPathParts) : solution) (init curPathParts)
     else reversePath rest (".." : solution) (curPathParts ++ [fst])
-
-
-

@@ -52,5 +52,3 @@ getLang path =
     case languagesByFilename path of
     [] -> ""
     lst -> head lst
-
-

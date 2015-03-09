@@ -35,6 +35,3 @@ partToText lang part =
     case part of
     Code txt -> txt
     Ref txt indent -> (indent <++> "<< " <++> (T.strip txt) <++> " >>\n")
-
-
-

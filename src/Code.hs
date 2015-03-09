@@ -39,18 +39,6 @@ expand chunks =
         parts = Map.lookupDefault backup "*" partMap 
     in
         expandParts parts partMap T.empty
-
---expandParts :: [Part] -> Map.HashMap T.Text [Part] -> T.Text -> T.Text
---expandParts parts partMap baseIndent =
---    let 
---        toText = (\part -> 
---            case part of
---            Code txt -> T.append baseIndent txt
---            Ref name indent -> expandParts refParts partMap (T.append baseIndent indent)
---                where refParts = Map.lookupDefault [] (T.strip name) partMap)
---    in 
---        T.concat $ intersperse "\n" (map toText parts)
-
 simplify :: [Part] -> [Part]
 simplify [] = []
 simplify parts =
@@ -59,11 +47,9 @@ simplify parts =
         (refParts, rest) = span isRef others
     in 
         refParts ++ (combineCodeParts codeParts) ++  (simplify rest)
-
 combineCodeParts :: [Part] -> [Part]
 combineCodeParts [] = []
 combineCodeParts parts = [Code (T.concat (map getCodeText parts))]
-
 expandParts :: [Part] -> Map.HashMap T.Text [Part] -> T.Text -> T.Text
 expandParts parts partMap baseIndent =
     let 

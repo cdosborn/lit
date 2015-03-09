@@ -34,12 +34,27 @@ A boolean check to differentiate between a `Prose` or `Def` chunk.
         Def _ _ _ -> True
         Prose _ -> False
 
+A boolean check to differentiate between a `Ref` or `Code` part.
+    << access methods for types >>=
+    isRef part =
+        case part of
+        Ref _ _ -> True
+        _ -> False
+
 Retrieve the macro name.
     << access methods for types >>=
     getName chunk =
         case chunk of
         Def _ name _ -> name
         _ -> error "cannot retrieve name, not a def"
+
+Retrieve the text of the code part (the non macro references in a chunk).
+    << access methods for types >>=
+    getCodeText part = 
+        case part of
+        Code txt -> txt
+        _ -> error "cannot retrieve text, not a code part"
+
 
 Retrieve the list of code lines and macro references.
     << access methods for types >>=

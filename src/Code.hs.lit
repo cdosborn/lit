@@ -26,7 +26,7 @@ Code relies on a HashMap, where the keys are macro names and the values `Chunk`.
 Despite being of type `Chunk` all values constructed from `Prose` are ignored leaving
 only `Def`. For more information on types see Types.hs
     << import modules >>=
-    import Data.List (partition)
+    import Data.List (partition, intersperse)
     import qualified Data.HashMap.Strict as Map
     import qualified Data.Text as T
 
@@ -85,8 +85,8 @@ a value, it cannot be passed an empty list.
             line = getLineNo c
 
 `expand` assumes a list of only `Def` of type `Chunk` which hold the actual code
-or references to other 'Def' which hold code. First it creates a map of (macro name, macro)
-of more precisely (`Text`,`Chunk`). It then searches for the root macro name `*`, resorting
+or references to other 'Def' which hold code. First it creates a map of (macro name, macro contents)
+of more precisely (`Text`,`[Part]`). It then searches for the root macro name `*`, resorting
 to the first macro definition, and recursively expands the different parts of the root.
 (`<< * >>=`) to begin expansion
     << expand chunk references with chunks >>=
@@ -94,15 +94,34 @@ to the first macro definition, and recursively expands the different parts of th
     expand chunks =
         let 
             -- map (name, parts)
-            partMap = Map.fromList $ zip (map getName chunks) (map getParts chunks)
+            partMap = Map.fromList $ zip (map getName chunks) (map (simplify. getParts) chunks)
             backup = getParts $ last chunks
             parts = Map.lookupDefault backup "*" partMap 
         in
             expandParts parts partMap T.empty
 
+When `expand` is generating the map of (macro name, macro contents). It simplifies the macro contents
+by merging adjacent Code parts into a single Code part. This is a necessary step, because of how `lit` 
+intersperses newlines in the expanded macros. 
+    << expand chunk references with chunks >>=
+    simplify :: [Part] -> [Part]
+    simplify [] = []
+    simplify parts =
+        let 
+            (codeParts, others) = break isRef parts
+            (refParts, rest) = span isRef others
+        in 
+            refParts ++ (combineCodeParts codeParts) ++  (simplify rest)
+
+`combineCodeParts` takes a list of Code parts and returns a list of a single merged Code part
+    << expand chunk references with chunks >>=
+    combineCodeParts :: [Part] -> [Part]
+    combineCodeParts [] = []
+    combineCodeParts parts = [Code (T.concat (map getCodeText parts))]
+
 `expand` from above relies on `expandParts` to actually perform the recursive lookup. Each
-call to `expandParts` returns text if the part is simply a code line (`Code line`) or the 
-text which results from expanding a reference to its code lines. If the part is a reference (`Ref name`), 
+call to `expandParts` returns text for parts that are simply blocks of code or text which results 
+from expanding references to their appropriate code blocks. If the part is a reference (`Ref name`), 
 `expandParts` looks up the name of the macro in the map, and proceeds to pull out the code lines
 in that macro. Refer to Types.hs for clarity on the different wrapper types mentioned here.
     << expand chunk references with chunks >>=
@@ -112,7 +131,7 @@ in that macro. Refer to Types.hs for clarity on the different wrapper types ment
             toText = (\part -> 
                 case part of
                 Code txt -> T.append baseIndent txt
-                Ref name indent -> expandParts refParts partMap (T.append baseIndent indent)
+                Ref name indent -> (expandParts refParts partMap (T.append baseIndent indent))
                     where refParts = Map.lookupDefault [] (T.strip name) partMap)
         in 
-            T.concat (map toText parts) `T.append` "\n"
+            T.concat $ intersperse "\n" (map toText parts)

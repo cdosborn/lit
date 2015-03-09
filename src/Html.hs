@@ -87,6 +87,3 @@ headerToHtml name =  H.preEscapedToHtml $ "&lt;&lt; " <++> link <++> " &gt;&gt;=
 underscore :: T.Text -> T.Text
 underscore txt =
     T.pack $ concatMap (\c -> if c == ' ' then "_" else [c]) $ T.unpack txt
-
-
-

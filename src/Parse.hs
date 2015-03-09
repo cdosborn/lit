@@ -69,7 +69,6 @@ grabLine = do
 ws :: Parser Char
 ws = char ' ' <|> char '\t'
 
-
 packM str = return $ T.pack str
 
 textP :: Parsec T.Text () T.Text ->  T.Text -> T.Text
@@ -83,5 +82,3 @@ chunkP p txt =
     case (parse p "" txt) of 
     Left err -> Nothing
     Right result -> Just result
-
-
