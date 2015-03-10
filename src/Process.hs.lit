@@ -11,6 +11,7 @@ An overview of the file:
     << define Process module >>
     << import modules >>
     << process a single file >>
+    << expand includes >>
     << helper functions >>
 
 Process exports the pipelines so they can be *preconfigured*. In `lit.hs`, the pipelines are curried with the output directory corresponding to their type, and with the optional css path. The `process` function depends on being called with preconfigured pipes.     
@@ -26,7 +27,7 @@ Besides the reading and writing file utilities, each output format is contained 
     << import modules >>=
     import Prelude hiding (readFile, writeFile)
     import Data.Text.IO (writeFile, readFile)
-    import System.FilePath.Posix (takeFileName, dropExtension)
+    import System.FilePath.Posix (takeFileName, dropExtension, combine)
     import System.Directory
     import System.FilePath.Posix
     import Data.List (intercalate)
@@ -41,11 +42,33 @@ Besides the reading and writing file utilities, each output format is contained 
 Process as a library accompolishes the primary goals through the `process` function. After reading the file, `encode` parses the file into `[Chunks]` (see [Types.hs](Types.hs.html) for more about the data structure). Lastly, each pipeline function in the list of `pipes` is applied to the data structure. Each pipeline takes a `[Chunks]` and writes a file. 
     << process a single file >>=
     process pipes file = do 
-        stream <- readFile file
-        encoded <- return $ encode stream 
+        encoded <- encodeFile file
         mapM_ (\f -> f fileName encoded) pipes >> return ()
         where
             fileName = dropExtension $ takeFileName file
+
+    encodeFile :: String -> IO [Chunk]
+    encodeFile file = do
+        stream <- readFile file
+        expandInclude $ encode stream file
+
+The parser generates `Include` chunks when an include directive is seen in the
+input. This function recursively expands those `Include` chunks by parsing the
+included file and splicing in the chunks parsed.
+    << expand includes >>=
+    expandInclude :: [Chunk] -> IO [Chunk]
+    expandInclude ((Include sourceName includedName):rest) = do
+        tail <- expandInclude rest
+        encodedInclude <- encodeFile includedFile
+        return $ encodedInclude ++ tail
+        where
+            includedFile = combine (dropFileName sourceName) $ T.unpack includedName
+
+    expandInclude (chunk:rest) = do
+        tail <- expandInclude rest
+        return $ chunk:tail
+
+    expandInclude [] = return []
 
 Beside the main function `process`. Process as a module defines several useful pipelines (function transforms chained together). Each pipeline can be generalized in the following way.
 
