@@ -1,3 +1,5 @@
+{-# LINE 7 "src/lit.hs.lit" #-}
+{-# LINE 14 "src/lit.hs.lit" #-}
 module Main where
 
 import System.Console.GetOpt
@@ -9,6 +11,8 @@ import Control.Applicative
 
 import Process
 import Poll
+{-# LINE 29 "src/lit.hs.lit" #-}
+{-# LINE 35 "src/lit.hs.lit" #-}
 data Options = Options  { optCodeDir  :: String 
                         , optDocsDir  :: String
                         , optCss      :: Maybe String
@@ -16,7 +20,9 @@ data Options = Options  { optCodeDir  :: String
                         , optHtml     :: Bool
                         , optMarkdown :: Bool
                         , optWatch    :: Bool
+                        , optNumber   :: Bool
                         }
+{-# LINE 46 "src/lit.hs.lit" #-}
 startOptions :: Options
 startOptions = Options  { optCodeDir  = "./"
                         , optDocsDir  = "./"
@@ -25,7 +31,9 @@ startOptions = Options  { optCodeDir  = "./"
                         , optHtml     = False
                         , optMarkdown = False
                         , optWatch    = False
+                        , optNumber   = False
                         }
+{-# LINE 59 "src/lit.hs.lit" #-}
 options :: [ OptDescr (Options -> IO Options) ]
 options = 
     [ Option  "h" ["html"]
@@ -39,6 +47,10 @@ options =
     , Option "c" ["code"]
        (NoArg (\opt -> return opt { optCode = True }))
        "Generate code by file extension"
+
+    , Option "n" ["number"]
+       (NoArg (\opt -> return opt { optNumber = True }))
+       "Add annotations to generated code noting the lit file and line from which it came"
 
     , Option "" ["css"]
        (ReqArg
@@ -78,13 +90,16 @@ options =
                exitWith ExitSuccess))
        "Display help"
     ]
+{-# LINE 118 "src/lit.hs.lit" #-}
 usage = "Usage: lit OPTIONS... FILES..."
 help = "Try:   lit --help"
+{-# LINE 123 "src/lit.hs.lit" #-}
 main = do
     args <- getArgs
  
     -- Parse options, getting a list of option actions
     let (actions, files, errors) = getOpt Permute options args
+{-# LINE 131 "src/lit.hs.lit" #-}
     opts <- foldl (>>=) (return startOptions) actions
  
     let Options { optCodeDir  = codeDir
@@ -94,17 +109,21 @@ main = do
                 , optHtml     = html
                 , optCss      = mCss
                 , optWatch    = watching
+                , optNumber   = numberLines
                 } = opts 
+{-# LINE 145 "src/lit.hs.lit" #-}
     codeDirCheck <- doesDirectoryExist codeDir
     docsDirCheck <- doesDirectoryExist docsDir
-    let htmlPipe = if html     then [Process.htmlPipeline docsDir mCss] else []
-        mdPipe   = if markdown then [Process.mdPipeline   docsDir mCss] else []
-        codePipe = if code     then [Process.codePipeline codeDir mCss] else []
+{-# LINE 150 "src/lit.hs.lit" #-}
+    let htmlPipe = if html     then [Process.htmlPipeline docsDir mCss numberLines] else []
+        mdPipe   = if markdown then [Process.mdPipeline   docsDir mCss numberLines] else []
+        codePipe = if code     then [Process.codePipeline codeDir mCss numberLines] else []
         pipes = htmlPipe ++ mdPipe ++ codePipe 
         maybeWatch = if watching then Poll.watch else mapM_
         errors'  = if codeDirCheck then [] else ["Directory: " ++ codeDir ++ " does not exist\n"]
         errors'' = if docsDirCheck then [] else ["Directory: " ++ docsDir ++ " does not exist\n"]
         allErr = errors ++ errors' ++ errors''
+{-# LINE 161 "src/lit.hs.lit" #-}
     if allErr /= [] || (not html && not code && not markdown) || files == []
         then hPutStrLn stderr ((concat allErr) ++ help) 
         else (maybeWatch (Process.process pipes)) files

@@ -27,7 +27,7 @@ Besides the reading and writing file utilities, each output format is contained 
     << import modules >>=
     import Prelude hiding (readFile, writeFile)
     import Data.Text.IO (writeFile, readFile)
-    import System.FilePath.Posix (takeFileName, dropExtension, combine)
+    import System.FilePath.Posix (takeFileName, dropExtension, combine, takeExtension)
     import System.Directory
     import System.FilePath.Posix
     import Data.List (intercalate)
@@ -83,23 +83,23 @@ Beside the main function `process`. Process as a module defines several useful p
     << html helpers >>
 
     << html pipeline >>=
-    htmlPipeline dir mCss name enc = do
+    htmlPipeline dir mCss numberLines name enc = do
         maybeCss <- cssRelativeToOutput dir mCss
         let path = (addTrailingPathSeparator dir) ++ name ++ ".html"
             output = Html.generate maybeCss name enc
         writeFile path output
 
     << markdown pipeline >>=
-    mdPipeline dir css name enc = writeFile path output
+    mdPipeline dir css numberLines name enc = writeFile path output
         where
             path = (addTrailingPathSeparator dir) ++ name ++ ".md"
             output = Markdown.generate name enc
 
     << code pipeline >>=
-    codePipeline dir css name enc = writeFile path output
+    codePipeline dir css numberLines name enc = writeFile path output
         where
             path = (addTrailingPathSeparator dir) ++ name
-            output = Code.generate enc
+            output = Code.generate numberLines (takeExtension name) enc
 
 The helpers below take a path to a css file and a path to an html file
 from the current directory and return the path linking the html to the css.

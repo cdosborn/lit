@@ -36,20 +36,58 @@ only `Def`. For more information on types see Types.hs
 before calling `generate` to make the code file from a `lit` file. It performs: 
 
 1. Filtering out all `Prose` 
-2. Merging macro definitions with the same name
-3. Expanding macros and references to just lines of code
+2. Adding language-specific line directives
+3. Merging macro definitions with the same name
+4. Expanding macros and references to just lines of code
 
     << generate a code file from chunks >>=
-    generate :: [Chunk] -> T.Text
-    generate = expand . merge . (filter isDef)
+    generate :: Bool -> String -> [Chunk] -> T.Text
+    generate numberLines ext = expand . merge . numberFn . (filter isDef)
+        where
+            numberFn = if numberLines then (addLineNumbers (getLineGenerator ext)) else id
 
 
 `generate` depends on the following helper functions.
     << helper functions >>=
+    << line directive generators >>
+    << add line directives >>
     << merge chunks with the same name >>
     << reduce chunks into one >>
     << expand chunk references with chunks >>
 
+The desired format of the line directives for each supported file type are defined here.
+    << line directive generators >>=
+    getLineGenerator :: String -> (String -> Int -> T.Text)
+    getLineGenerator ".c" = \file line -> T.pack $ "#line " ++ (show line) ++ " \"" ++ file ++ "\"\n"
+    getLineGenerator ".hs" = \file line -> T.pack $ "{-# LINE " ++ (show line) ++ " \"" ++ file ++ "\" #-}\n"
+    getLineGenerator _ = \file line -> T.pack ""
+
+The line directives are inserted into the list of chunks by the `addLineNumbers` function.
+    << add line directives >>=
+    addLineNumbers :: (String -> Int -> T.Text) -> [Chunk] -> [Chunk]
+    addLineNumbers generator chunks = map numberDefs chunks
+        where
+            << number Defs >>
+            << number Parts >>
+
+Each `Def` is prefixed by a line directive, so that when it replaces a reference
+in the output code the line numbers will change appropriately.
+    << number Defs >>=
+    numberDefs (Def (SourceLoc srcFile srcLine) name parts) =
+        Def (SourceLoc srcFile srcLine) name ((Code (generator srcFile (srcLine + 1))):(numberParts (generator srcFile) (srcLine + 1) parts))
+    numberDefs chunk = chunk
+
+Any `Code` part within a `Def` that directly follows a `Ref` part is also
+prefixed with a line directive; so that the line numbering is changed back to
+that of the original `Def` part, rather than continuing incorrectly from the
+code substitued in by the `Ref`.
+    << number Parts >>=
+    numberParts :: (Int -> T.Text) -> Int -> [Part] -> [Part]
+    numberParts mkDirective cLine ((Ref name indent):(Code c):rest) =
+        (Ref name indent):(Code (mkDirective (cLine + 1))):(Code c):(numberParts mkDirective (cLine + 2) rest)
+    numberParts mkDirective cLine (part:rest) =
+        part:(numberParts mkDirective (cLine + 1) rest)
+    numberParts mkDirective cLine [] = []
 
 `merge` allows for a macro extension. By reusing a macro definition,
 narrative can be interweaved into code.
@@ -98,7 +136,7 @@ to the first macro definition, and recursively expands the different parts of th
             backup = getParts $ last chunks
             parts = Map.lookupDefault backup "*" partMap 
         in
-            expandParts parts partMap T.empty
+            expandParts parts partMap T.empty 
 
 `expand` from above relies on `expandParts` to actually perform the recursive lookup. Each
 call to `expandParts` returns text for parts that are simply blocks of code or text which results 
