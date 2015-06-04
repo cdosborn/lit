@@ -1,0 +1,11 @@
+    << * >>=
+    some text
+    << a >>
+    << b >>
+    some more
+
+    << a >>=
+    text2
+
+    << b >>=
+    text3

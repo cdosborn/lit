@@ -46,7 +46,7 @@ simplify parts =
         (codeParts, others) = break isRef parts
         (refParts, rest) = span isRef others
     in 
-        refParts ++ (combineCodeParts codeParts) ++  (simplify rest)
+        (combineCodeParts codeParts) ++ refParts ++ (simplify rest)
 combineCodeParts :: [Part] -> [Part]
 combineCodeParts [] = []
 combineCodeParts parts = [Code (T.concat (map getCodeText parts))]

@@ -111,7 +111,7 @@ intersperses newlines in the expanded macros.
             (codeParts, others) = break isRef parts
             (refParts, rest) = span isRef others
         in 
-            refParts ++ (combineCodeParts codeParts) ++  (simplify rest)
+            (combineCodeParts codeParts) ++ refParts ++ (simplify rest)
 
 `combineCodeParts` takes a list of Code parts and returns a list of a single merged Code part
     << expand chunk references with chunks >>=
