@@ -99,7 +99,7 @@ simplify parts <span class="fu">=</span>
         (codeParts, others) <span class="fu">=</span> break isRef parts
         (refParts, rest) <span class="fu">=</span> span isRef others
     <span class="kw">in</span> 
-        refParts <span class="fu">++</span> (combineCodeParts codeParts) <span class="fu">++</span>  (simplify rest)
+        (combineCodeParts codeParts) <span class="fu">++</span> refParts <span class="fu">++</span> (simplify rest)
 </code></pre><p><code>combineCodeParts</code> takes a list of Code parts and returns a list of a single merged Code part</p>
 <pre><code>&lt;&lt; <a id="expand_chunk_references_with_chunks" href="#expand_chunk_references_with_chunks">expand chunk references with chunks</a> &gt;&gt;=
 <span class="ot">combineCodeParts ::</span> [<span class="dt">Part</span>] <span class="ot">-&gt;</span> [<span class="dt">Part</span>]
