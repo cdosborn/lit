@@ -1,7 +1,10 @@
     << * >>=
     some text
+
     << a >>
+
     << b >>
+
     some more
 
     << a >>=

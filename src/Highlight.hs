@@ -1,5 +1,4 @@
 module Highlight (highlight, getLang) where
-
 import qualified Data.Text as T 
 import Data.Monoid (mconcat)
 
@@ -10,7 +9,6 @@ import Text.Highlighting.Kate ( defaultFormatOpts
                               , highlightAs
                               , languagesByFilename )
 import Text.Highlighting.Kate.Types 
-
 highlight :: String -> T.Text -> H.Html
 highlight lang txt = 
     let
@@ -18,12 +16,10 @@ highlight lang txt =
         htmlList = map sourceLineToHtml highlighted
     in 
         mconcat htmlList
-
 sourceLineToHtml :: SourceLine -> H.Html
 sourceLineToHtml line = mconcat $  htmlList ++ [H.toHtml "\n"]
     where
         htmlList = map (tokenToHtml defaultFormatOpts) line
-
 tokenToHtml :: FormatOptions -> Token -> H.Html
 tokenToHtml _ (NormalTok, str)  = H.toHtml str
 tokenToHtml opts (toktype, str) =
@@ -31,7 +27,6 @@ tokenToHtml opts (toktype, str) =
     then sp ! A.title (toValue $ show toktype)
     else sp 
         where sp = H.span ! A.class_ (toValue $ short toktype) $ H.toHtml str
-
 short :: TokenType -> String
 short KeywordTok        = "kw"
 short DataTypeTok       = "dt"
@@ -47,7 +42,6 @@ short FunctionTok       = "fu"
 short RegionMarkerTok   = "re"
 short ErrorTok          = "er"
 short NormalTok         = ""
-
 getLang path = 
     case languagesByFilename path of
     [] -> ""

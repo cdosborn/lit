@@ -1,15 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Code ( generate ) where
-
 import Data.List (partition, intersperse)
 import qualified Data.HashMap.Strict as Map
 import qualified Data.Text as T
 
 import Types
-
 generate :: [Chunk] -> T.Text
 generate = expand . merge . (filter isDef)
-
 merge :: [Chunk] -> [Chunk]
 merge = mergeAux []
 mergeAux ans [] = ans
@@ -21,7 +18,6 @@ mergeAux ans (next:rest) =
         merged = combineChunks (next:found)
     in 
         mergeAux (merged:ans) rem
-
 combineChunks :: [Chunk] -> Chunk
 combineChunks (a:[]) = a
 combineChunks l@(c:cs) = Def line name parts 
@@ -29,27 +25,15 @@ combineChunks l@(c:cs) = Def line name parts
         parts = concatMap getParts l
         name = getName c
         line = getLineNo c
-
 expand :: [Chunk] -> T.Text
 expand chunks =
     let 
         -- map (name, parts)
-        partMap = Map.fromList $ zip (map getName chunks) (map (simplify. getParts) chunks)
+        partMap = Map.fromList $ zip (map getName chunks) (map getParts chunks)
         backup = getParts $ last chunks
         parts = Map.lookupDefault backup "*" partMap 
     in
         expandParts parts partMap T.empty
-simplify :: [Part] -> [Part]
-simplify [] = []
-simplify parts =
-    let 
-        (codeParts, others) = break isRef parts
-        (refParts, rest) = span isRef others
-    in 
-        (combineCodeParts codeParts) ++ refParts ++ (simplify rest)
-combineCodeParts :: [Part] -> [Part]
-combineCodeParts [] = []
-combineCodeParts parts = [Code (T.concat (map getCodeText parts))]
 expandParts :: [Part] -> Map.HashMap T.Text [Part] -> T.Text -> T.Text
 expandParts parts partMap baseIndent =
     let 
@@ -59,4 +43,4 @@ expandParts parts partMap baseIndent =
             Ref name indent -> (expandParts refParts partMap (T.append baseIndent indent))
                 where refParts = Map.lookupDefault [] (T.strip name) partMap)
     in 
-        T.concat $ intersperse "\n" (map toText parts)
+        T.concat $ map toText parts

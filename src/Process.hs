@@ -4,7 +4,6 @@ module Process
 , htmlPipeline
 , mdPipeline
 , codePipeline ) where
-
 import Prelude hiding (readFile, writeFile)
 import Data.Text.IO (writeFile, readFile)
 import System.FilePath.Posix (takeFileName, dropExtension)
@@ -18,30 +17,25 @@ import Code
 import Html
 import Markdown
 import Types
-
 process pipes file = do 
     stream <- readFile file
     encoded <- return $ encode stream 
     mapM_ (\f -> f fileName encoded) pipes >> return ()
     where
         fileName = dropExtension $ takeFileName file
-
 htmlPipeline dir mCss name enc = do
     maybeCss <- cssRelativeToOutput dir mCss
     let path = (addTrailingPathSeparator dir) ++ name ++ ".html"
         output = Html.generate maybeCss name enc
     writeFile path output
-
 mdPipeline dir css name enc = writeFile path output
     where
         path = (addTrailingPathSeparator dir) ++ name ++ ".md"
         output = Markdown.generate name enc
-
 codePipeline dir css name enc = writeFile path output
     where
         path = (addTrailingPathSeparator dir) ++ name
         output = Code.generate enc
-
 cssRelativeToOutput :: String -> Maybe String -> IO (Maybe String)
 cssRelativeToOutput output mCss =
     case mCss of

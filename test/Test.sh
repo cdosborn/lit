@@ -1,10 +1,10 @@
 #! /usr/bin/env bash
 # 
 # Running tests
-#   ./Test.sh # this script
+#   ./test.sh # this script
 #
 # Adding a test
-#   Add a two files to this directory
+#   Add two files to this directory
 #       <name>.lit and <name>
 #   Where <name> is the correct code output of <name.lit
 
@@ -15,14 +15,14 @@ lit_home="$test_dir/../"
 lit_exec=$lit_home/dist/build/lit/lit
 
 # Store the output from running lit in test/results
-mkdir $test_dir/results &>/dev/null
-
+[ -d $test_dir/results ] || mkdir $test_dir/results &>/dev/null
+ 
 num_tests=$(wc -w <<< $tests)
 num_pass=0
 for test in $tests; do
     prefix=$(basename ${test%.*})
     printf "Testing $prefix: "
-    $lit_exec -c "$test" --code-dir $test_dir/results
+    $lit_exec -c "$test" --code-dir $test_dir/results &>/dev/null
     diff $test_dir/$prefix $test_dir/results/$prefix > $test_dir/results/$prefix.diff
     if [ -s $test_dir/results/$prefix.diff ]; then
         echo "failed, see $test_dir/results/$prefix.diff"
@@ -33,7 +33,10 @@ for test in $tests; do
     fi
 done
 
-num_fail=$(( $num_tests - $num_pass ))
+# Print summary
+echo ""
+echo "Passed: $num_pass/$num_tests"
 
-echo
-echo "Passed: $num_pass/$num_tests Failed: $num_fail/$num_tests"
+if [ $num_pass -lt $num_tests ]; then
+    exit 1;
+fi

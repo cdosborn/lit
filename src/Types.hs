@@ -1,11 +1,9 @@
 module Types where
 
 import Data.Text 
-
 data Chunk = Def Int Text [Part] | Prose Text deriving (Show, Eq)
 data Part = Code Text | Ref Text Text deriving (Show, Eq)
 type Program = [Chunk]
-
 isDef chunk =
     case chunk of
     Def _ _ _ -> True

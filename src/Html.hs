@@ -1,6 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Html (generate) where
-
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import Data.Maybe (fromMaybe)
@@ -14,7 +13,6 @@ import Cheapskate.Html
 
 import Highlight
 import Types
-
 generate :: Maybe String -> String -> [Chunk] -> T.Text
 generate maybeCss name chunks = 
     let 
@@ -24,10 +22,8 @@ generate maybeCss name chunks =
         doc = preface maybeCss name body
     in 
         TL.toStrict $ renderHtml doc
-
 (<++>) :: T.Text -> T.Text -> T.Text
 (<++>) = T.append
-
 preface :: Maybe String -> String -> H.Html -> H.Html
 preface maybeCss fileName bodyHtml =
     let 
@@ -44,7 +40,6 @@ preface maybeCss fileName bodyHtml =
             H.meta ! A.charset "UTF-8" 
             includeCss
         H.body $ do bodyHtml
-
 simplify :: [Chunk] -> [Chunk]
 simplify [] = []
 simplify lst =
@@ -55,7 +50,6 @@ simplify lst =
     in case ps' of
         [] -> defs ++ rest
         _ -> defs ++ [mergeProse ps'] ++ (simplify rest)
-
 chunkToHtml :: String -> Chunk -> H.Html
 chunkToHtml lang chunk =
     case chunk of
@@ -66,7 +60,6 @@ chunkToHtml lang chunk =
             htmlParts = H.preEscapedToHtml $ map (partToHtml lang) parts
         in 
             H.pre $ H.code $ (header >> htmlParts)
-
 partToHtml :: String -> Part -> H.Html
 partToHtml lang part =
     case part of
@@ -76,14 +69,12 @@ partToHtml lang part =
             link = "<a href=\"#" <++> underscored <++> "\">" <++> slim <++> "</a>"
             slim = T.strip txt
             underscored = underscore slim 
-
 headerToHtml :: T.Text -> H.Html
 headerToHtml name =  H.preEscapedToHtml $ "&lt;&lt; " <++> link <++> " &gt;&gt;=\n" 
     where
         link = "<a id=\"" <++> underscored <++> "\" href=\"#" <++> underscored <++> "\">" <++> slim <++> "</a>"
         slim = T.strip name
         underscored = underscore slim
-
 underscore :: T.Text -> T.Text
 underscore txt =
     T.pack $ concatMap (\c -> if c == ' ' then "_" else [c]) $ T.unpack txt

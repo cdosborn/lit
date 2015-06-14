@@ -94,30 +94,11 @@ to the first macro definition, and recursively expands the different parts of th
     expand chunks =
         let 
             -- map (name, parts)
-            partMap = Map.fromList $ zip (map getName chunks) (map (simplify. getParts) chunks)
+            partMap = Map.fromList $ zip (map getName chunks) (map getParts chunks)
             backup = getParts $ last chunks
             parts = Map.lookupDefault backup "*" partMap 
         in
             expandParts parts partMap T.empty
-
-When `expand` is generating the map of (macro name, macro contents). It simplifies the macro contents
-by merging adjacent Code parts into a single Code part. This is a necessary step, because of how `lit` 
-intersperses newlines in the expanded macros. 
-    << expand chunk references with chunks >>=
-    simplify :: [Part] -> [Part]
-    simplify [] = []
-    simplify parts =
-        let 
-            (codeParts, others) = break isRef parts
-            (refParts, rest) = span isRef others
-        in 
-            (combineCodeParts codeParts) ++ refParts ++ (simplify rest)
-
-`combineCodeParts` takes a list of Code parts and returns a list of a single merged Code part
-    << expand chunk references with chunks >>=
-    combineCodeParts :: [Part] -> [Part]
-    combineCodeParts [] = []
-    combineCodeParts parts = [Code (T.concat (map getCodeText parts))]
 
 `expand` from above relies on `expandParts` to actually perform the recursive lookup. Each
 call to `expandParts` returns text for parts that are simply blocks of code or text which results 
@@ -134,4 +115,4 @@ in that macro. Refer to Types.hs for clarity on the different wrapper types ment
                 Ref name indent -> (expandParts refParts partMap (T.append baseIndent indent))
                     where refParts = Map.lookupDefault [] (T.strip name) partMap)
         in 
-            T.concat $ intersperse "\n" (map toText parts)
+            T.concat $ map toText parts

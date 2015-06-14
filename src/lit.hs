@@ -9,7 +9,6 @@ import Control.Applicative
 
 import Process
 import Poll
-
 data Options = Options  { optCodeDir  :: String 
                         , optDocsDir  :: String
                         , optCss      :: Maybe String
@@ -18,7 +17,6 @@ data Options = Options  { optCodeDir  :: String
                         , optMarkdown :: Bool
                         , optWatch    :: Bool
                         }
-
 startOptions :: Options
 startOptions = Options  { optCodeDir  = "./"
                         , optDocsDir  = "./"
@@ -28,7 +26,6 @@ startOptions = Options  { optCodeDir  = "./"
                         , optMarkdown = False
                         , optWatch    = False
                         }
-
 options :: [ OptDescr (Options -> IO Options) ]
 options = 
     [ Option  "h" ["html"]
@@ -81,10 +78,8 @@ options =
                exitWith ExitSuccess))
        "Display help"
     ]
-
 usage = "Usage: lit OPTIONS... FILES..."
 help = "Try:   lit --help"
-
 main = do
     args <- getArgs
  

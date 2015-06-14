@@ -61,23 +61,13 @@ When `lit` attempts to generate the source code from the literate file, it expan
 macro reference with the corresponding macro definition. By convention, `lit` starts at the root macro
 definition `<< * >>=`, which must be included to generate source code.
 
-
 ## Install 
 In order to use, [install Haskell](http://www.haskell.org/platform/) and run:
 ```
 cabal install lit
 ```
 
-## Build
-In order to build from the latest snapshot run:
-```
-$ git clone https://github.com/cdosborn/lit.git 
-$ cd lit/
-$ cabal configure
-$ cabal build
-$ cabal install
-```
-##Usage
+## Usage
 ```
 Usage: lit OPTIONS... FILES...
 
@@ -91,3 +81,23 @@ Usage: lit OPTIONS... FILES...
   -v  --version       Print version
       --help          Display help
 ```
+
+## Build
+In order to build from the latest snapshot run:
+```
+git clone https://github.com/cdosborn/lit.git 
+cd lit;
+./build.sh 
+```
+
+## Bugs
+
+Submit an issue, with your input lit file, and failing output. If you're
+feeling motivated submit a pull request with both files added to test/.
+
+## Contribute
+
+Use the online [docs](http://cdosborn.github.io/lit/lit/root.html) to explore
+the codebase. Make changes to `src/*.lit`  files, and then run `./build.sh`. It's
+well documented and will handle rebuilding, running tests, and generating
+docs. Newly generated docs must be pushed to the `gh-pages` branch.
