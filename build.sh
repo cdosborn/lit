@@ -32,4 +32,4 @@ test/Test.sh || exit 1
 # Generate docs (html)
 echo "● Generating lit docs (see docs/):"
 [ -d ./docs ] || mkdir docs
-./dist/build/lit/lit --html --css=css/default.css --docs-dir=docs/ src/*.hs || exit 1
+./dist/build/lit/lit --html --css=css/default.css --docs-dir=docs/ src/*.lit || exit 1
