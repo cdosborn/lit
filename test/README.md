@@ -1,5 +1,5 @@
 ##To run output tests
-`./test.sh`
+`../scripts/test.sh`
 
 ##To add output tests
 Add two files: issue42, issue42.lit. Where issue42 is the desired output of

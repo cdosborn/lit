@@ -8,8 +8,10 @@
 #       <name>.lit and <name>
 #   Where <name> is the correct code output of <name.lit
 
-# Globals for directories/lit exe
-test_dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+# Get directory of this script
+script_dir="$(dirname $(readlink -f $0))"
+# Set test_dir to be lit/test
+test_dir="$script_dir/../test/"
 tests=$(ls $test_dir/*.lit)
 lit_home="$test_dir/../"
 lit_exec=$lit_home/dist/build/lit/lit

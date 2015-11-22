@@ -12,6 +12,11 @@
 # Note: documentation is built in a docs/ folder, which must be pushed to the
 # gh-pages branch.
 
+# Change into root lit directory
+echo "● Changing into lit directory"
+lit_home="$(dirname $(dirname $(readlink -f $0)))"
+cd $lit_home
+
 # Generate code (src files)
 echo "● Regenerating *.hs from *.hs.lit:"
 if [ -f ./dist/build/lit/lit ]; then 
@@ -27,7 +32,7 @@ cabal configure && cabal build || exit 1
 
 # Run tests
 echo "● Running tests:"
-test/Test.sh || exit 1
+scripts/test.sh || exit 1
 
 # Generate docs (html)
 echo "● Generating lit docs (see docs/):"
