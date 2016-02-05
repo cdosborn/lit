@@ -23,7 +23,8 @@ The `Def` constructor represents the code chunk, storing the line no. and chunk 
 Each code chunk  stores a `[Part]`, which represent lines of code or macro references
 of the form `<< name >>`.
     << datatypes >>=
-    data Chunk = Def Int Text [Part] | Prose Text deriving (Show, Eq)
+    data SourceLoc = SourceLoc String Int deriving (Show, Eq)
+    data Chunk = Def SourceLoc Text [Part] | Include String Text | Prose Text deriving (Show, Eq)
     data Part = Code Text | Ref Text Text deriving (Show, Eq)
     type Program = [Chunk]
 
@@ -32,6 +33,7 @@ A boolean check to differentiate between a `Prose` or `Def` chunk.
     isDef chunk =
         case chunk of
         Def _ _ _ -> True
+        Include _ _ -> False
         Prose _ -> False
 
 A boolean check to differentiate between a `Ref` or `Code` part.

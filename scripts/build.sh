@@ -20,10 +20,10 @@ cd $lit_home
 # Generate code (src files)
 echo "● Regenerating *.hs from *.hs.lit:"
 if [ -f ./dist/build/lit/lit ]; then 
-    ./dist/build/lit/lit --code --code-dir=src/ src/*.lit || exit 1
+    ./dist/build/lit/lit -n --code --code-dir=src/ src/*.lit || exit 1
 else
     cabal configure && cabal build 
-    ./dist/build/lit/lit --code --code-dir=src/ src/*.lit || exit 1
+    ./dist/build/lit/lit -n --code --code-dir=src/ src/*.lit || exit 1
 fi
 
 # Run cabal

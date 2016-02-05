@@ -1,12 +1,15 @@
+{-# LINE 11 "src/Process.hs.lit" #-}
+{-# LINE 19 "src/Process.hs.lit" #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Process
 ( process
 , htmlPipeline
 , mdPipeline
 , codePipeline ) where
+{-# LINE 28 "src/Process.hs.lit" #-}
 import Prelude hiding (readFile, writeFile)
 import Data.Text.IO (writeFile, readFile)
-import System.FilePath.Posix (takeFileName, dropExtension)
+import System.FilePath.Posix (takeFileName, dropExtension, combine, takeExtension)
 import System.Directory
 import System.FilePath.Posix
 import Data.List (intercalate)
@@ -17,25 +20,49 @@ import Code
 import Html
 import Markdown
 import Types
+{-# LINE 44 "src/Process.hs.lit" #-}
 process pipes file = do 
-    stream <- readFile file
-    encoded <- return $ encode stream 
+    encoded <- encodeFile file
     mapM_ (\f -> f fileName encoded) pipes >> return ()
     where
         fileName = dropExtension $ takeFileName file
-htmlPipeline dir mCss name enc = do
+
+encodeFile :: String -> IO [Chunk]
+encodeFile file = do
+    stream <- readFile file
+    expandInclude $ encode stream file
+{-# LINE 59 "src/Process.hs.lit" #-}
+expandInclude :: [Chunk] -> IO [Chunk]
+expandInclude ((Include sourceName includedName):rest) = do
+    tail <- expandInclude rest
+    encodedInclude <- encodeFile includedFile
+    return $ encodedInclude ++ tail
+    where
+        includedFile = combine (dropFileName sourceName) $ T.unpack includedName
+
+expandInclude (chunk:rest) = do
+    tail <- expandInclude rest
+    return $ chunk:tail
+
+expandInclude [] = return []
+{-# LINE 80 "src/Process.hs.lit" #-}
+{-# LINE 86 "src/Process.hs.lit" #-}
+htmlPipeline dir mCss numberLines name enc = do
     maybeCss <- cssRelativeToOutput dir mCss
     let path = (addTrailingPathSeparator dir) ++ name ++ ".html"
         output = Html.generate maybeCss name enc
     writeFile path output
-mdPipeline dir css name enc = writeFile path output
+{-# LINE 93 "src/Process.hs.lit" #-}
+mdPipeline dir css numberLines name enc = writeFile path output
     where
         path = (addTrailingPathSeparator dir) ++ name ++ ".md"
         output = Markdown.generate name enc
-codePipeline dir css name enc = writeFile path output
+{-# LINE 99 "src/Process.hs.lit" #-}
+codePipeline dir css numberLines name enc = writeFile path output
     where
         path = (addTrailingPathSeparator dir) ++ name
-        output = Code.generate enc
+        output = Code.generate numberLines (takeExtension name) enc
+{-# LINE 107 "src/Process.hs.lit" #-}
 cssRelativeToOutput :: String -> Maybe String -> IO (Maybe String)
 cssRelativeToOutput output mCss =
     case mCss of

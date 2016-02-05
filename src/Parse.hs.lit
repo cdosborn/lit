@@ -36,9 +36,9 @@ For the sake of testing, parse exports all of its definitions.
 
 `encode` is the primary function of Parse. It interfaces between Process and the various pipelines which interpret the `[Chunk]` into various outputs.
     << lit file to data structure >>=
-    encode :: T.Text -> [Chunk]
-    encode txt =
-        case (parse entire "" txt) of 
+    encode :: T.Text -> String -> [Chunk]
+    encode txt fileName =
+        case (parse entire fileName txt) of 
         Left err -> []
         Right result -> result
 
@@ -47,6 +47,7 @@ These are the many parsers from generic to most specific, which collectively par
     << parse all the chunks >>
     << parse a chunk >>
     << parse a chunk of prose >>
+    << parse an include directive >>
     << parse a chunk definition >>
     << try parsing the end of a definition >>
     << parse the title of a definiton >>
@@ -62,24 +63,37 @@ Parse all the chunks until the end of the file
     entire :: Parser Program
     entire = manyTill chunk eof
 
-Parse a chunk which is either of type `Def` or type `Prose`
+Parse a chunk which is either of type `Def`, `Include`, or `Prose`
     << parse a chunk >>=
     chunk :: Parser Chunk
-    chunk = (try def) <|> prose
+    chunk = (try def) <|> (try include) <|> prose
 
 Parse a line of prose, return `Prose` container of the line.
     << parse a chunk of prose >>=
     prose :: Parser Chunk
     prose = grabLine >>= (\line -> return $ Prose line)
 
+Parse an include directive, which looks like `>> filename <<`. Currently
+whitespace is stripped from the start and end of the filename in the same way as
+definition names. This means that you can't include files which have names that
+start or end in whitespace. The parser is not actually responsible for reading
+in the included file - that is performed in the `Process` module.
+    << parse an include directive >>=
+    include :: Parser Chunk
+    include = do
+        pos <- getPosition
+        indent <- many ws
+        fileName <- packM =<< between (string ">>") (string "<<") (many $ noneOf "<")
+        return $ Include (sourceName pos) $ T.strip fileName
+
 Parse a definiton of type `Def` by parsing the title
 and parsing the subparts (lines of code or references to chunks)
     << parse a chunk definition >>=
     def :: Parser Chunk
     def = do
-        (indent, header, lineNum) <- title
+        (indent, header, pos) <- title
         parts <- manyTill (part indent) $ endDef indent
-        return $ Def lineNum header parts
+        return $ Def (SourceLoc (sourceName pos) (sourceLine pos)) header parts
 
 A parser which *tries* does not consume input if it fails. `endDef` succeeds
 when the indentation does not match the proper indentation, or when there is
@@ -93,13 +107,13 @@ Parse the line which gives a title to a code chunk. `title` returns unique outpu
 to be used later. Ex. it records the indent, to match agains the body it contains.
     << parse the title of a definiton >>=
     -- Returns (indent, macro-name, line-no)
-    title :: Parser (String, T.Text, Int)
+    title :: Parser (String, T.Text, SourcePos)
     title = do
         pos <- getPosition
         indent <- many ws
         name <- packM =<< between (string "<<") (string ">>=") (many notDelim)
         newline
-        return $ (indent, T.strip name, sourceLine pos)
+        return $ (indent, T.strip name, pos)
 
 Parse a character which could lie within a title.
     << parse inside of title >>=
