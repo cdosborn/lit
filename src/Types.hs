@@ -1,7 +1,8 @@
 module Types where
 
 import Data.Text 
-data Chunk = Def Int Text [Part] | Prose Text deriving (Show, Eq)
+import Text.Parsec (SourcePos)
+data Chunk = Def SourcePos Text [Part] | Prose Text deriving (Show, Eq)
 data Part = Code Text | Ref Text Text deriving (Show, Eq)
 type Program = [Chunk]
 isDef chunk =

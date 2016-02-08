@@ -36,9 +36,9 @@ For the sake of testing, parse exports all of its definitions.
 
 `encode` is the primary function of Parse. It interfaces between Process and the various pipelines which interpret the `[Chunk]` into various outputs.
     << lit file to data structure >>=
-    encode :: T.Text -> [Chunk]
-    encode txt =
-        case (parse entire "" txt) of 
+    encode :: T.Text -> String -> [Chunk]
+    encode txt fileName =
+        case (parse entire fileName txt) of 
         Left err -> []
         Right result -> result
 
@@ -92,14 +92,14 @@ without the indent*
 Parse the line which gives a title to a code chunk. `title` returns unique output
 to be used later. Ex. it records the indent, to match agains the body it contains.
     << parse the title of a definiton >>=
-    -- Returns (indent, macro-name, line-no)
-    title :: Parser (String, T.Text, Int)
+    -- Returns (indent, macro-name, SourcePos)
+    title :: Parser (String, T.Text, SourcePos)
     title = do
         pos <- getPosition
         indent <- many ws
         name <- packM =<< between (string "<<") (string ">>=") (many notDelim)
         newline
-        return $ (indent, T.strip name, sourceLine pos)
+        return $ (indent, T.strip name, pos)
 
 Parse a character which could lie within a title.
     << parse inside of title >>=

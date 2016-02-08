@@ -39,6 +39,7 @@ A high-level overview of `lit.hs`:
                             , optHtml     :: Bool
                             , optMarkdown :: Bool
                             , optWatch    :: Bool
+                            , optNumber   :: Bool
                             }
 
     << default options >>=
@@ -50,6 +51,7 @@ A high-level overview of `lit.hs`:
                             , optHtml     = False
                             , optMarkdown = False
                             , optWatch    = False
+                            , optNumber   = False
                             }
 
 `options` is a list of monadic functions, which are applied to the options passed as arguments to `lit`. `options` provides the general program flow for argument handling.
@@ -67,6 +69,10 @@ A high-level overview of `lit.hs`:
         , Option "c" ["code"]
            (NoArg (\opt -> return opt { optCode = True }))
            "Generate code by file extension"
+    
+        , Option "n" ["number"]
+           (NoArg (\opt -> return opt { optNumber = True }))
+           "Add annotations to generated code noting the lit file and line from which it came"
     
         , Option "" ["css"]
            (ReqArg
@@ -131,6 +137,7 @@ After interpreting the arguments, `foldl` threads the default options through ea
                     , optHtml     = html
                     , optCss      = mCss
                     , optWatch    = watching
+                    , optNumber   = showLines
                     } = opts 
 
 A brief check to ensure that the directories actually exist for the given strings. This prevents ambiguous errors about writing to invalid paths.
@@ -142,7 +149,7 @@ Based on the conditions, we prepare part of the pipeline (the rest occurs in Pro
     << main >>=
         let htmlPipe = if html     then [Process.htmlPipeline docsDir mCss] else []
             mdPipe   = if markdown then [Process.mdPipeline   docsDir mCss] else []
-            codePipe = if code     then [Process.codePipeline codeDir mCss] else []
+            codePipe = if code     then [Process.codePipeline codeDir mCss showLines] else []
             pipes = htmlPipe ++ mdPipe ++ codePipe 
             maybeWatch = if watching then Poll.watch else mapM_
             errors'  = if codeDirCheck then [] else ["Directory: " ++ codeDir ++ " does not exist\n"]

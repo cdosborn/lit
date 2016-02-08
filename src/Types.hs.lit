@@ -14,6 +14,7 @@ most of the core data types used.
     module Types where
 
     import Data.Text 
+    import Text.Parsec (SourcePos)
 
 In [Parse.hs](Parse.hs.html), `lit` transforms files into a `[Chunk]`. Each
 output module ([Html](Html.hs.lit), [Code](Code.hs.lit), and [Markdown](Markdown.hs.lit))
@@ -23,7 +24,7 @@ The `Def` constructor represents the code chunk, storing the line no. and chunk 
 Each code chunk  stores a `[Part]`, which represent lines of code or macro references
 of the form `<< name >>`.
     << datatypes >>=
-    data Chunk = Def Int Text [Part] | Prose Text deriving (Show, Eq)
+    data Chunk = Def SourcePos Text [Part] | Prose Text deriving (Show, Eq)
     data Part = Code Text | Ref Text Text deriving (Show, Eq)
     type Program = [Chunk]
 

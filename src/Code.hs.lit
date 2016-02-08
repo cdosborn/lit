@@ -15,25 +15,29 @@ An overview of the file:
     << define Code module >>
     << import modules >>
     << generate a code file from chunks >>
+    << generate and include source mapping >>
     << helper functions >>
 
-Code only exports `generate` akin to Html and Markdown, the other output modules.
+Code only exports `generate` akin to Html and Markdown, the other output
+modules.
     << define Code module >>=
     {-# LANGUAGE OverloadedStrings #-}
-    module Code ( generate ) where
+    module Code ( generate, generateWithAnnotation ) where
 
-Code relies on a HashMap, where the keys are macro names and the values `Chunk`. 
-Despite being of type `Chunk` all values constructed from `Prose` are ignored leaving
-only `Def`. For more information on types see Types.hs
+Code relies on a HashMap, where the keys are macro names and the values
+`Chunk`.  Despite being of type `Chunk` all values constructed from `Prose`
+are ignored leaving only `Def`. For more information on types see Types.hs
     << import modules >>=
     import Data.List (partition, intersperse)
     import qualified Data.HashMap.Strict as Map
     import qualified Data.Text as T
+    import Text.Parsec.Pos
 
     import Types
 
-`generate` is the interface for the module. `lit` generates the `[Chunk]` with Parse.hs
-before calling `generate` to make the code file from a `lit` file. It performs: 
+`generate` is the interface for the module. `lit` generates the `[Chunk]` with
+Parse.hs before calling `generate` to make the code file from a `lit` file. It
+performs: 
 
 1. Filtering out all `Prose` 
 2. Merging macro definitions with the same name
@@ -43,6 +47,25 @@ before calling `generate` to make the code file from a `lit` file. It performs:
     generate :: [Chunk] -> T.Text
     generate = expand . merge . (filter isDef)
 
+Generating code with annotations includes a comment linking to the original
+lit file and line number
+    << generate and include source mapping >>=
+    generateWithAnnotation :: String -> [Chunk] -> T.Text
+    generateWithAnnotation ext = expand . merge . (annotate ext) . (filter isDef)
+
+    annotate :: String -> [Chunk] -> [Chunk]
+    annotate langExt chunks = map annotateChunk chunks
+        where 
+            annotateChunk (Def sourcePos name parts) = 
+                Def sourcePos name $ (Code $ annotation sourcePos):parts
+            annotation sourcePos = T.pack $ annotateForLang langExt (sourceName sourcePos) (sourceLine sourcePos) ++ "\n"
+            << Include an annotation for your language >>
+
+Include comments for various languages. 
+    << Include an annotation for your language >>=
+    annotateForLang ".sh" filePath lineNo = "# " ++ filePath ++ ":" ++ (show lineNo)
+    annotateForLang ".hs" filePath lineNo = "-- " ++ filePath ++ ":" ++ (show lineNo)
+    annotateForLang _ filePath lineNo = "// " ++ filePath ++ ":" ++ (show lineNo)
 
 `generate` depends on the following helper functions.
     << helper functions >>=
@@ -92,13 +115,12 @@ to the first macro definition, and recursively expands the different parts of th
     << expand chunk references with chunks >>=
     expand :: [Chunk] -> T.Text
     expand chunks =
-        let 
+        expandParts parts partMap T.empty
+        where 
             -- map (name, parts)
             partMap = Map.fromList $ zip (map getName chunks) (map getParts chunks)
             backup = getParts $ last chunks
             parts = Map.lookupDefault backup "*" partMap 
-        in
-            expandParts parts partMap T.empty
 
 `expand` from above relies on `expandParts` to actually perform the recursive lookup. Each
 call to `expandParts` returns text for parts that are simply blocks of code or text which results 
@@ -108,11 +130,10 @@ in that macro. Refer to Types.hs for clarity on the different wrapper types ment
     << expand chunk references with chunks >>=
     expandParts :: [Part] -> Map.HashMap T.Text [Part] -> T.Text -> T.Text
     expandParts parts partMap baseIndent =
-        let 
-            toText = (\part -> 
+        T.concat $ map toText parts
+        where 
+            toText part =
                 case part of
                 Code txt -> T.append baseIndent txt
                 Ref name indent -> (expandParts refParts partMap (T.append baseIndent indent))
-                    where refParts = Map.lookupDefault [] (T.strip name) partMap)
-        in 
-            T.concat $ map toText parts
+                    where refParts = Map.lookupDefault [] (T.strip name) partMap

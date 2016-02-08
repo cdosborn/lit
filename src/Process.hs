@@ -6,7 +6,7 @@ module Process
 , codePipeline ) where
 import Prelude hiding (readFile, writeFile)
 import Data.Text.IO (writeFile, readFile)
-import System.FilePath.Posix (takeFileName, dropExtension)
+import System.FilePath.Posix (takeFileName, dropExtension, takeExtension)
 import System.Directory
 import System.FilePath.Posix
 import Data.List (intercalate)
@@ -19,7 +19,7 @@ import Markdown
 import Types
 process pipes file = do 
     stream <- readFile file
-    encoded <- return $ encode stream 
+    encoded <- return $ encode stream file
     mapM_ (\f -> f fileName encoded) pipes >> return ()
     where
         fileName = dropExtension $ takeFileName file
@@ -32,10 +32,14 @@ mdPipeline dir css name enc = writeFile path output
     where
         path = (addTrailingPathSeparator dir) ++ name ++ ".md"
         output = Markdown.generate name enc
-codePipeline dir css name enc = writeFile path output
+codePipeline dir css showLines name enc = writeFile path output
     where
         path = (addTrailingPathSeparator dir) ++ name
-        output = Code.generate enc
+        ext = takeExtension name
+        output = 
+            if showLines 
+            then Code.generateWithAnnotation ext enc 
+            else Code.generate enc 
 cssRelativeToOutput :: String -> Maybe String -> IO (Maybe String)
 cssRelativeToOutput output mCss =
     case mCss of

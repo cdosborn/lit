@@ -16,6 +16,7 @@ data Options = Options  { optCodeDir  :: String
                         , optHtml     :: Bool
                         , optMarkdown :: Bool
                         , optWatch    :: Bool
+                        , optNumber   :: Bool
                         }
 startOptions :: Options
 startOptions = Options  { optCodeDir  = "./"
@@ -25,6 +26,7 @@ startOptions = Options  { optCodeDir  = "./"
                         , optHtml     = False
                         , optMarkdown = False
                         , optWatch    = False
+                        , optNumber   = False
                         }
 options :: [ OptDescr (Options -> IO Options) ]
 options = 
@@ -39,6 +41,10 @@ options =
     , Option "c" ["code"]
        (NoArg (\opt -> return opt { optCode = True }))
        "Generate code by file extension"
+
+    , Option "n" ["number"]
+       (NoArg (\opt -> return opt { optNumber = True }))
+       "Add annotations to generated code noting the lit file and line from which it came"
 
     , Option "" ["css"]
        (ReqArg
@@ -94,12 +100,13 @@ main = do
                 , optHtml     = html
                 , optCss      = mCss
                 , optWatch    = watching
+                , optNumber   = showLines
                 } = opts 
     codeDirCheck <- doesDirectoryExist codeDir
     docsDirCheck <- doesDirectoryExist docsDir
     let htmlPipe = if html     then [Process.htmlPipeline docsDir mCss] else []
         mdPipe   = if markdown then [Process.mdPipeline   docsDir mCss] else []
-        codePipe = if code     then [Process.codePipeline codeDir mCss] else []
+        codePipe = if code     then [Process.codePipeline codeDir mCss showLines] else []
         pipes = htmlPipe ++ mdPipe ++ codePipe 
         maybeWatch = if watching then Poll.watch else mapM_
         errors'  = if codeDirCheck then [] else ["Directory: " ++ codeDir ++ " does not exist\n"]
