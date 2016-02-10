@@ -14,36 +14,36 @@ import Cheapskate.Html
 import Highlight
 import Types
 generate :: Maybe String -> String -> [Chunk] -> T.Text
-generate maybeCss name chunks = 
-    let 
+generate maybeCss name chunks =
+    let
         lang = getLang name
         mergedProse = simplify chunks -- adjacent Prose combined to one prose
         body = H.preEscapedToHtml $ map (chunkToHtml lang) mergedProse
         doc = preface maybeCss name body
-    in 
+    in
         TL.toStrict $ renderHtml doc
 (<++>) :: T.Text -> T.Text -> T.Text
 (<++>) = T.append
 preface :: Maybe String -> String -> H.Html -> H.Html
 preface maybeCss fileName bodyHtml =
-    let 
+    let
         cssPath = fromMaybe "" maybeCss
         cssAttr = toValue cssPath
-        includeCss = 
+        includeCss =
             if cssPath /= ""
             then H.link ! A.rel "stylesheet" ! A.type_ "text/css" ! A.href cssAttr
             else H.toHtml T.empty
-    in 
-        H.docTypeHtml $ do 
+    in
+        H.docTypeHtml $ do
         H.head $ do
             H.title $ H.toHtml fileName
-            H.meta ! A.charset "UTF-8" 
+            H.meta ! A.charset "UTF-8"
             includeCss
         H.body $ do bodyHtml
 simplify :: [Chunk] -> [Chunk]
 simplify [] = []
 simplify lst =
-    let 
+    let
         (defs, ps) = span isDef lst
         (ps', rest) = break isDef ps
         mergeProse chunks = Prose $ T.concat $ map getProseText chunks
@@ -54,11 +54,11 @@ chunkToHtml :: String -> Chunk -> H.Html
 chunkToHtml lang chunk =
     case chunk of
     Prose txt -> H.toHtml $ markdown def txt
-    Def _ name parts -> 
-        let 
+    Def _ name parts ->
+        let
             header = headerToHtml name
             htmlParts = H.preEscapedToHtml $ map (partToHtml lang) parts
-        in 
+        in
             H.pre $ H.code $ (header >> htmlParts)
 partToHtml :: String -> Part -> H.Html
 partToHtml lang part =
@@ -68,9 +68,9 @@ partToHtml lang part =
         where
             link = "<a href=\"#" <++> underscored <++> "\">" <++> slim <++> "</a>"
             slim = T.strip txt
-            underscored = underscore slim 
+            underscored = underscore slim
 headerToHtml :: T.Text -> H.Html
-headerToHtml name =  H.preEscapedToHtml $ "&lt;&lt; " <++> link <++> " &gt;&gt;=\n" 
+headerToHtml name =  H.preEscapedToHtml $ "&lt;&lt; " <++> link <++> " &gt;&gt;=\n"
     where
         link = "<a id=\"" <++> underscored <++> "\" href=\"#" <++> underscored <++> "\">" <++> slim <++> "</a>"
         slim = T.strip name

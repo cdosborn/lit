@@ -13,8 +13,8 @@ generateWithAnnotation ext = expand . merge . (annotate ext) . (filter isDef)
 
 annotate :: String -> [Chunk] -> [Chunk]
 annotate langExt chunks = map annotateChunk chunks
-    where 
-        annotateChunk (Def sourcePos name parts) = 
+    where
+        annotateChunk (Def sourcePos name parts) =
             Def sourcePos name $ (Code $ annotation sourcePos):parts
         annotation sourcePos = T.pack $ annotateForLang langExt (sourceName sourcePos) (sourceLine sourcePos) ++ "\n"
         annotateForLang ext filePath lineNo = (comment ext) ++ " " ++ filePath ++ ":" ++ (show lineNo)
@@ -24,17 +24,17 @@ annotate langExt chunks = map annotateChunk chunks
 merge :: [Chunk] -> [Chunk]
 merge = mergeAux []
 mergeAux ans [] = ans
-mergeAux ans (next:rest) = 
-    let 
+mergeAux ans (next:rest) =
+    let
         name = getName next
         chunkHasName name = (== name) . getName
-        (found, rem) = partition (chunkHasName name) rest 
+        (found, rem) = partition (chunkHasName name) rest
         merged = combineChunks (next:found)
-    in 
+    in
         mergeAux (merged:ans) rem
 combineChunks :: [Chunk] -> Chunk
 combineChunks (a:[]) = a
-combineChunks l@(c:cs) = Def line name parts 
+combineChunks l@(c:cs) = Def line name parts
     where
         parts = concatMap getParts l
         name = getName c
@@ -42,15 +42,15 @@ combineChunks l@(c:cs) = Def line name parts
 expand :: [Chunk] -> T.Text
 expand chunks =
     expandParts parts partMap T.empty
-    where 
+    where
         -- map (name, parts)
         partMap = Map.fromList $ zip (map getName chunks) (map getParts chunks)
         backup = getParts $ last chunks
-        parts = Map.lookupDefault backup "*" partMap 
+        parts = Map.lookupDefault backup "*" partMap
 expandParts :: [Part] -> Map.HashMap T.Text [Part] -> T.Text -> T.Text
 expandParts parts partMap baseIndent =
     T.concat $ map toText parts
-    where 
+    where
         toText part =
             case part of
             Code txt -> T.append baseIndent txt

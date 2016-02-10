@@ -8,21 +8,22 @@ An overview of the file:
     << datatypes >>
     << access methods for types >>
 
-Types is a module imported by most the other modules in `lit`, because it defines
-most of the core data types used.
+Types is a module imported by most the other modules in `lit`, because it
+defines most of the core data types used.
     << module definition >>=
     module Types where
 
-    import Data.Text 
+    import Data.Text
     import Text.Parsec (SourcePos)
 
 In [Parse.hs](Parse.hs.html), `lit` transforms files into a `[Chunk]`. Each
-output module ([Html](Html.hs.lit), [Code](Code.hs.lit), and [Markdown](Markdown.hs.lit))
-accepts a `[Chunk]` before writing their respective output.
+output module ([Html](Html.hs.lit), [Code](Code.hs.lit), and
+[Markdown](Markdown.hs.lit)) accepts a `[Chunk]` before writing their
+respective output.
 
-The `Def` constructor represents the code chunk, storing the line no. and chunk name.
-Each code chunk  stores a `[Part]`, which represent lines of code or macro references
-of the form `<< name >>`.
+The `Def` constructor represents the code chunk, storing the line no. and
+chunk name.  Each code chunk  stores a `[Part]`, which represent lines of code
+or macro references of the form `<< name >>`.
     << datatypes >>=
     data Chunk = Def SourcePos Text [Part] | Prose Text deriving (Show, Eq)
     data Part = Code Text | Ref Text Text deriving (Show, Eq)
@@ -51,7 +52,7 @@ Retrieve the macro name.
 
 Retrieve the text of the code part (the non macro references in a chunk).
     << access methods for types >>=
-    getCodeText part = 
+    getCodeText part =
         case part of
         Code txt -> txt
         _ -> error "cannot retrieve text, not a code part"
@@ -74,8 +75,7 @@ in the `lit` file.
 
 Retrieve the text stored in a `Prose`.
     << access methods for types >>=
-    getProseText chunk = 
+    getProseText chunk =
         case chunk of
         Prose txt -> txt
         _ -> error "cannot retrieve text, not a prose"
-

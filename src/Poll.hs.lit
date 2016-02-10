@@ -1,6 +1,9 @@
 # [/ ](root.html)Poll.hs - watches files for changes, applying a tranform when modified
 
-Poll is triggered by the `--watch` flag to `lit`. It applies the `lit` command every time one of the files changes. Poll implements simple file polling and does not attempt to interface with the underlying event system. Afterall, `lit` is a simple utility.
+Poll is triggered by the `--watch` flag to `lit`. It applies the `lit` command
+every time one of the files changes. Poll implements simple file polling and
+does not attempt to interface with the underlying event system. Afterall,
+`lit` is a simple utility.
 
 An overview of the file:
     << * >>=
@@ -12,7 +15,7 @@ An overview of the file:
 
 Poll exposes only the watch functionality
     << define Poll module >>=
-    module Poll 
+    module Poll
     ( watch ) where
 
     << import modules >>=
@@ -23,40 +26,42 @@ Poll exposes only the watch functionality
     import qualified Control.Concurrent as C
     import System.IO.Error
 
-`watch` takes a function which operates on a file and performs an IO action indefinitely. In `lit`, 
-`fun` is all the file processing (writing Html, writing Code, etc) necessary for one file. `watch`
-does not actually apply the transform but makes a request to `onChange` defined below.
+`watch` takes a function which operates on a file and performs an IO action
+indefinitely. In `lit`, `fun` is all the file processing (writing Html,
+writing Code, etc) necessary for one file. `watch` does not actually apply the
+transform but makes a request to `onChange` defined below.
     << watch a file >>=
     watch :: (String -> IO ()) -> [String] -> IO ()
-    watch fun fs = 
-        let 
+    watch fun fs =
+        let
             wait = C.threadDelay 1000000
-        in do 
+        in do
         putStrLn "starting.."
         mapM_ fun fs
         forever $ (wait >> mapM_ (onChange fun) fs)
 
-`onChange` handles a function and a file. It checks to see if the file was saved recently. If so,
-the function needs to be reapplied to the file. Otherwise, the function was previously applied, and
-nothing needs to be done.
+`onChange` handles a function and a file. It checks to see if the file was
+saved recently. If so, the function needs to be reapplied to the file.
+Otherwise, the function was previously applied, and nothing needs to be done.
     << apply a fun if the file changed >>=
     onChange :: (String -> IO ()) -> String -> IO ()
     onChange fun file = do
-        modified <- retryAtMost 10 (getModificationTime file) 
-        curTime <- getCurrentTime 
+        modified <- retryAtMost 10 (getModificationTime file)
+        curTime <- getCurrentTime
         let diff = (diffUTCTime curTime modified)
         if diff < 2 then fun file else return ()
 
-Occasionally, a timing error occurs when the program tries to read the modification time. If the 
-file is in the process of being saved, it becomes unavailable. During which, the program returns 
-the error that the file does not exist. `retryAtMost n action` will ignore the error n times before 
+Occasionally, a timing error occurs when the program tries to read the
+modification time. If the file is in the process of being saved, it becomes
+unavailable. During which, the program returns the error that the file does
+not exist. `retryAtMost n action` will ignore the error n times before
 actually throwing the error.
     << retry if timing error >>=
     retryAtMost 1 action = catchIOError action (\e -> ioError e)
-    retryAtMost times action = 
+    retryAtMost times action =
         let
-            handle e = if isDoesNotExistError e 
+            handle e = if isDoesNotExistError e
                 then C.threadDelay 50000 >> retryAtMost (times - 1) action
                 else ioError e
-        in 
-            catchIOError action handle 
+        in
+            catchIOError action handle

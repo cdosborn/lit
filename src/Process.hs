@@ -17,7 +17,7 @@ import Code
 import Html
 import Markdown
 import Types
-process pipes file = do 
+process pipes file = do
     stream <- readFile file
     encoded <- return $ encode stream file
     mapM_ (\f -> f fileName encoded) pipes >> return ()
@@ -36,27 +36,27 @@ codePipeline dir css showLines name enc = writeFile path output
     where
         path = (addTrailingPathSeparator dir) ++ name
         ext = takeExtension name
-        output = 
-            if showLines 
-            then Code.generateWithAnnotation ext enc 
-            else Code.generate enc 
+        output =
+            if showLines
+            then Code.generateWithAnnotation ext enc
+            else Code.generate enc
 cssRelativeToOutput :: String -> Maybe String -> IO (Maybe String)
 cssRelativeToOutput output mCss =
     case mCss of
     Nothing -> return Nothing
     Just css -> do
     getCurrentDirectory >>= canonicalizePath >>= \path -> return $ Just $ (join' . helper' . trim' . split') path
-    where 
+    where
         moves = filter (\str -> str /= ".") $ splitDirectories output
         split' = splitDirectories
         trim'   = trimToMatchLength moves
         helper' = reversePath moves []
         join' path = (intercalate "/" path) </> css
 
-trimToMatchLength list listToTrim = 
+trimToMatchLength list listToTrim =
     let len1 = length list
         len2 = length listToTrim
-    in 
+    in
         drop (len2 - len1) listToTrim
 
 reversePath [] solution curPathParts = solution

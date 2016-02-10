@@ -1,6 +1,7 @@
 # [/ ](root.html)Process.hs - links `lit`'s command line interface and file generation
 
-Process unifies the different ways that `lit` can produce files. Here are the goals:
+Process unifies the different ways that `lit` can produce files. Here are the
+goals:
 
 1. Parse a file into a data structure
 2. Pass the data structure through pipelines (Html, Code, Markdown)
@@ -13,7 +14,10 @@ An overview of the file:
     << process a single file >>
     << helper functions >>
 
-Process exports the pipelines so they can be *preconfigured*. In `lit.hs`, the pipelines are curried with the output directory corresponding to their type, and with the optional css path. The `process` function depends on being called with preconfigured pipes.     
+Process exports the pipelines so they can be *preconfigured*. In `lit.hs`, the
+pipelines are curried with the output directory corresponding to their type,
+and with the optional css path. The `process` function depends on being called
+with preconfigured pipes.
     << define Process module >>=
     {-# LANGUAGE OverloadedStrings #-}
     module Process
@@ -22,7 +26,9 @@ Process exports the pipelines so they can be *preconfigured*. In `lit.hs`, the p
     , mdPipeline
     , codePipeline ) where
 
-Besides the reading and writing file utilities, each output format is contained in a module which specifies a `generate` function. Ex. `Html.generate` renders the parsed `.lit` file as `Text`.
+Besides the reading and writing file utilities, each output format is
+contained in a module which specifies a `generate` function. Ex.
+`Html.generate` renders the parsed `.lit` file as `Text`.
     << import modules >>=
     import Prelude hiding (readFile, writeFile)
     import Data.Text.IO (writeFile, readFile)
@@ -38,19 +44,25 @@ Besides the reading and writing file utilities, each output format is contained 
     import Markdown
     import Types
 
-Process as a library accompolishes the primary goals through the `process` function. After reading the file, `encode` parses the file into `[Chunks]` (see [Types.hs](Types.hs.html) for more about the data structure). Lastly, each pipeline function in the list of `pipes` is applied to the data structure. Each pipeline takes a `[Chunks]` and writes a file. 
+Process as a library accompolishes the primary goals through the `process`
+function. After reading the file, `encode` parses the file into `[Chunks]`
+(see [Types.hs](Types.hs.html) for more about the data structure). Lastly,
+each pipeline function in the list of `pipes` is applied to the data
+structure. Each pipeline takes a `[Chunks]` and writes a file.
     << process a single file >>=
-    process pipes file = do 
+    process pipes file = do
         stream <- readFile file
         encoded <- return $ encode stream file
         mapM_ (\f -> f fileName encoded) pipes >> return ()
         where
             fileName = dropExtension $ takeFileName file
 
-Beside the main function `process`. Process as a module defines several useful pipelines (function transforms chained together). Each pipeline can be generalized in the following way.
+Beside the main function `process`. Process as a module defines several useful
+pipelines (function transforms chained together). Each pipeline can be
+generalized in the following way.
 
-1. Append the correct file extention to the filename 
-2. Transform `[Chunks] -> Text`, through a `generate` function 
+1. Append the correct file extention to the filename
+2. Transform `[Chunks] -> Text`, through a `generate` function
 3. Write to the path with the transformed text
 
     << helper functions >>=
@@ -77,13 +89,13 @@ Beside the main function `process`. Process as a module defines several useful p
         where
             path = (addTrailingPathSeparator dir) ++ name
             ext = takeExtension name
-            output = 
-                if showLines 
-                then Code.generateWithAnnotation ext enc 
-                else Code.generate enc 
+            output =
+                if showLines
+                then Code.generateWithAnnotation ext enc
+                else Code.generate enc
 
-The helpers below take a path to a css file and a path to an html file
-from the current directory and return the path linking the html to the css.
+The helpers below take a path to a css file and a path to an html file from
+the current directory and return the path linking the html to the css.
     << html helpers >>=
     cssRelativeToOutput :: String -> Maybe String -> IO (Maybe String)
     cssRelativeToOutput output mCss =
@@ -91,17 +103,17 @@ from the current directory and return the path linking the html to the css.
         Nothing -> return Nothing
         Just css -> do
         getCurrentDirectory >>= canonicalizePath >>= \path -> return $ Just $ (join' . helper' . trim' . split') path
-        where 
+        where
             moves = filter (\str -> str /= ".") $ splitDirectories output
             split' = splitDirectories
             trim'   = trimToMatchLength moves
             helper' = reversePath moves []
             join' path = (intercalate "/" path) </> css
 
-    trimToMatchLength list listToTrim = 
+    trimToMatchLength list listToTrim =
         let len1 = length list
             len2 = length listToTrim
-        in 
+        in
             drop (len2 - len1) listToTrim
 
     reversePath [] solution curPathParts = solution

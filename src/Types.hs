@@ -1,6 +1,6 @@
 module Types where
 
-import Data.Text 
+import Data.Text
 import Text.Parsec (SourcePos)
 data Chunk = Def SourcePos Text [Part] | Prose Text deriving (Show, Eq)
 data Part = Code Text | Ref Text Text deriving (Show, Eq)
@@ -17,7 +17,7 @@ getName chunk =
     case chunk of
     Def _ name _ -> name
     _ -> error "cannot retrieve name, not a def"
-getCodeText part = 
+getCodeText part =
     case part of
     Code txt -> txt
     _ -> error "cannot retrieve text, not a code part"
@@ -29,7 +29,7 @@ getLineNo chunk =
     case chunk of
     Def line _ _ -> line
     _ -> error "cannot retrieve line number, not a def"
-getProseText chunk = 
+getProseText chunk =
     case chunk of
     Prose txt -> txt
     _ -> error "cannot retrieve text, not a prose"

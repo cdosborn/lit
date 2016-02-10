@@ -1,5 +1,5 @@
 module Highlight (highlight, getLang) where
-import qualified Data.Text as T 
+import qualified Data.Text as T
 import Data.Monoid (mconcat)
 
 import Text.Blaze (toValue, (!))
@@ -8,13 +8,13 @@ import qualified Text.Blaze.Html5.Attributes as A
 import Text.Highlighting.Kate ( defaultFormatOpts
                               , highlightAs
                               , languagesByFilename )
-import Text.Highlighting.Kate.Types 
+import Text.Highlighting.Kate.Types
 highlight :: String -> T.Text -> H.Html
-highlight lang txt = 
+highlight lang txt =
     let
         highlighted = highlightAs lang (T.unpack txt)
         htmlList = map sourceLineToHtml highlighted
-    in 
+    in
         mconcat htmlList
 sourceLineToHtml :: SourceLine -> H.Html
 sourceLineToHtml line = mconcat $  htmlList ++ [H.toHtml "\n"]
@@ -25,7 +25,7 @@ tokenToHtml _ (NormalTok, str)  = H.toHtml str
 tokenToHtml opts (toktype, str) =
     if titleAttributes opts
     then sp ! A.title (toValue $ show toktype)
-    else sp 
+    else sp
         where sp = H.span ! A.class_ (toValue $ short toktype) $ H.toHtml str
 short :: TokenType -> String
 short KeywordTok        = "kw"
@@ -42,7 +42,7 @@ short FunctionTok       = "fu"
 short RegionMarkerTok   = "re"
 short ErrorTok          = "er"
 short NormalTok         = ""
-getLang path = 
+getLang path =
     case languagesByFilename path of
     [] -> ""
     lst -> head lst

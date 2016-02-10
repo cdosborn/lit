@@ -9,7 +9,7 @@ import Control.Applicative
 
 import Process
 import Poll
-data Options = Options  { optCodeDir  :: String 
+data Options = Options  { optCodeDir  :: String
                         , optDocsDir  :: String
                         , optCss      :: Maybe String
                         , optCode     :: Bool
@@ -29,7 +29,7 @@ startOptions = Options  { optCodeDir  = "./"
                         , optNumber   = False
                         }
 options :: [ OptDescr (Options -> IO Options) ]
-options = 
+options =
     [ Option  "h" ["html"]
        (NoArg (\opt -> return opt { optHtml = True }))
        "Generate html"
@@ -44,7 +44,7 @@ options =
 
     , Option "n" ["number"]
        (NoArg (\opt -> return opt { optNumber = True }))
-       "Add annotations to generated code noting the lit file and line from which it came"
+       "Add annotations to generated code noting the source lit file and line number"
 
     , Option "" ["css"]
        (ReqArg
@@ -68,14 +68,14 @@ options =
        (NoArg
            (\opt -> return opt { optWatch = True}))
        "Watch for file changes, automatically run lit"
- 
+
     , Option "v" ["version"]
        (NoArg
            (\_ -> do
-               hPutStrLn stderr "Version 0.1.0.9"
+               hPutStrLn stderr "Version 0.1.10.0"
                exitWith ExitSuccess))
        "Print version"
- 
+
     , Option "" ["help"]
        (NoArg
            (\_ -> do
@@ -88,11 +88,11 @@ usage = "Usage: lit OPTIONS... FILES..."
 help = "Try:   lit --help"
 main = do
     args <- getArgs
- 
+
     -- Parse options, getting a list of option actions
     let (actions, files, errors) = getOpt Permute options args
     opts <- foldl (>>=) (return startOptions) actions
- 
+
     let Options { optCodeDir  = codeDir
                 , optDocsDir  = docsDir
                 , optMarkdown = markdown
@@ -101,17 +101,17 @@ main = do
                 , optCss      = mCss
                 , optWatch    = watching
                 , optNumber   = showLines
-                } = opts 
+                } = opts
     codeDirCheck <- doesDirectoryExist codeDir
     docsDirCheck <- doesDirectoryExist docsDir
     let htmlPipe = if html     then [Process.htmlPipeline docsDir mCss] else []
         mdPipe   = if markdown then [Process.mdPipeline   docsDir mCss] else []
         codePipe = if code     then [Process.codePipeline codeDir mCss showLines] else []
-        pipes = htmlPipe ++ mdPipe ++ codePipe 
+        pipes = htmlPipe ++ mdPipe ++ codePipe
         maybeWatch = if watching then Poll.watch else mapM_
         errors'  = if codeDirCheck then [] else ["Directory: " ++ codeDir ++ " does not exist\n"]
         errors'' = if docsDirCheck then [] else ["Directory: " ++ docsDir ++ " does not exist\n"]
         allErr = errors ++ errors' ++ errors''
     if allErr /= [] || (not html && not code && not markdown) || files == []
-        then hPutStrLn stderr ((concat allErr) ++ help) 
+        then hPutStrLn stderr ((concat allErr) ++ help)
         else (maybeWatch (Process.process pipes)) files

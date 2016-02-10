@@ -5,8 +5,8 @@ import qualified Data.Text as T
 import Types
 import Highlight (getLang)
 generate :: String -> [Chunk] -> T.Text
-generate name chunks = 
-    let 
+generate name chunks =
+    let
         lang = getLang name
         toMarkDown = chunkToMarkdown lang
     in
@@ -16,14 +16,14 @@ generate name chunks =
 chunkToMarkdown lang chunk =
     case chunk of
     Prose text  -> text
-    Def _ name parts -> 
-        let 
+    Def _ name parts ->
+        let
             lang' = T.pack lang
             header = "<< " <++> (T.strip name) <++> " >>="
             mdParts = T.concat $ map (partToText lang) parts
-        in 
-            "```" <++> lang'   <++> 
-            "\n"  <++> header  <++> 
+        in
+            "```" <++> lang'   <++>
+            "\n"  <++> header  <++>
             "\n"  <++> mdParts <++> "```\n"
 partToText :: String -> Part -> T.Text
 partToText lang part =

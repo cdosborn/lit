@@ -1,11 +1,12 @@
 # [/ ](root.html)Html.hs - generates Html from a `lit` file
 
-Html is a module which transforms the main data structure for a parsed 
-`lit` file into Html. Html renders the narrative from markdown to Html 
-and introduces anchors to refer back and forth from macros references 
-to their definitions. Html generates [simple](http://www.catb.org/jargon/html/K/KISS-Principle.html) 
-valid html. It currently does not create a table of contents or implement 
-any other extra functionality.  
+Html is a module which transforms the main data structure for a parsed `lit`
+file into Html. Html renders the narrative from markdown to Html and
+introduces anchors to refer back and forth from macros references to their
+definitions. Html generates
+[simple](http://www.catb.org/jargon/html/K/KISS-Principle.html) valid html. It
+currently does not create a table of contents or implement any other extra
+functionality.
 
 An overview of the file:
     << * >>=
@@ -14,7 +15,8 @@ An overview of the file:
     << generate html document from chunks >>
     << helper functions >>
 
-Html only exports `generate` akin to Code and Markdown, the other output modules.
+Html only exports `generate` akin to Code and Markdown, the other output
+modules.
     << define html module >>=
     {-# LANGUAGE OverloadedStrings #-}
     module Html (generate) where
@@ -37,21 +39,22 @@ generate the Html from handy combinators.
     import Highlight
     import Types
 
-`generate` is the interface for the module. `lit` generates the `[Chunk]` with [Parse.hs](Parse.hs.html)
-before calling `generate` to make the Html file from a `lit` file. It performs the following:
+`generate` is the interface for the module. `lit` generates the `[Chunk]` with
+[Parse.hs](Parse.hs.html) before calling `generate` to make the Html file from
+a `lit` file. It performs the following:
 
 1. [Simplify](#simplify_consecutive_prose_chunks) `Prose` into a single `Prose`
 2. [Convert](#transform_a_chunk_to_html) each `Chunk` to html
 3. [Preface](#preface_the_html_with_the_head_tag) the html with proper Doctype/Head/Meta
     << generate html document from chunks >>=
     generate :: Maybe String -> String -> [Chunk] -> T.Text
-    generate maybeCss name chunks = 
-        let 
+    generate maybeCss name chunks =
+        let
             lang = getLang name
             mergedProse = simplify chunks -- adjacent Prose combined to one prose
             body = H.preEscapedToHtml $ map (chunkToHtml lang) mergedProse
             doc = preface maybeCss name body
-        in 
+        in
             TL.toStrict $ renderHtml doc
 
 An overview of the helper functions used to generate a valid html document.
@@ -64,44 +67,45 @@ An overview of the helper functions used to generate a valid html document.
     << wrap a chunk header in an anchor >>
     << replace spaces with underscores in anchors >>
 
-Due to the verbosity of using `T.append` as an infix operator for `T.Text`, the following
-operator appends text like the list append operator `++`
+Due to the verbosity of using `T.append` as an infix operator for `T.Text`,
+the following operator appends text like the list append operator `++`
     << frequently used operator for appending text >>=
     (<++>) :: T.Text -> T.Text -> T.Text
     (<++>) = T.append
 
-`preface` wraps the generated lit html in the html necessary
-for all valid html documents. On the command line `lit` accepts
-a `--css=path/to/file` option which will include css in the prefaced document
+`preface` wraps the generated lit html in the html necessary for all valid
+html documents. On the command line `lit` accepts a `--css=path/to/file`
+option which will include css in the prefaced document
     << preface the html with the head tag >>=
     preface :: Maybe String -> String -> H.Html -> H.Html
     preface maybeCss fileName bodyHtml =
-        let 
+        let
             cssPath = fromMaybe "" maybeCss
             cssAttr = toValue cssPath
-            includeCss = 
+            includeCss =
                 if cssPath /= ""
                 then H.link ! A.rel "stylesheet" ! A.type_ "text/css" ! A.href cssAttr
                 else H.toHtml T.empty
-        in 
-            H.docTypeHtml $ do 
+        in
+            H.docTypeHtml $ do
             H.head $ do
                 H.title $ H.toHtml fileName
-                H.meta ! A.charset "UTF-8" 
+                H.meta ! A.charset "UTF-8"
                 includeCss
             H.body $ do bodyHtml
 
-Before `Chunk`s can be rendered to html, all consecutive `Prose`s are
-reduced to a single `Prose`. Many consecutive `Prose`s exist because parsing the `lit` file
-by line greatly simplifies the parser. As a result each line of narrative is
-stored as a `Prose` of that line. When rendering a `Prose`, it is necessary that the entire
-prose is passed together to be rendered.  A markdown list rendered separately in markdown 
-would result in several lists in the resulting html.
+Before `Chunk`s can be rendered to html, all consecutive `Prose`s are reduced
+to a single `Prose`. Many consecutive `Prose`s exist because parsing the `lit`
+file by line greatly simplifies the parser. As a result each line of narrative
+is stored as a `Prose` of that line. When rendering a `Prose`, it is necessary
+that the entire prose is passed together to be rendered.  A markdown list
+rendered separately in markdown would result in several lists in the resulting
+html.
     << simplify consecutive prose chunks >>=
     simplify :: [Chunk] -> [Chunk]
     simplify [] = []
     simplify lst =
-        let 
+        let
             (defs, ps) = span isDef lst
             (ps', rest) = break isDef ps
             mergeProse chunks = Prose $ T.concat $ map getProseText chunks
@@ -109,25 +113,25 @@ would result in several lists in the resulting html.
             [] -> defs ++ rest
             _ -> defs ++ [mergeProse ps'] ++ (simplify rest)
 
-For a `Chunk`, the `Prose` is rendered through the markdown renderer.
-The other form, `Def` renders its name with an anchor and renders its parts within
-a code block. Because the syntax for `lit` macros conflicts with html, these characters are 
-escaped with  `&lt;` and `&gt;`
+For a `Chunk`, the `Prose` is rendered through the markdown renderer.  The
+other form, `Def` renders its name with an anchor and renders its parts within
+a code block. Because the syntax for `lit` macros conflicts with html, these
+characters are escaped with  `&lt;` and `&gt;`
     << transform a chunk to html >>=
     chunkToHtml :: String -> Chunk -> H.Html
     chunkToHtml lang chunk =
         case chunk of
         Prose txt -> H.toHtml $ markdown def txt
-        Def _ name parts -> 
-            let 
+        Def _ name parts ->
+            let
                 header = headerToHtml name
                 htmlParts = H.preEscapedToHtml $ map (partToHtml lang) parts
-            in 
+            in
                 H.pre $ H.code $ (header >> htmlParts)
 
-A part can either be a line of code, or a reference to a macro. In the resulting
-html, the reference turns into an anchor pointing to the macro's definition. The
-line of code is simply highlighted.
+A part can either be a line of code, or a reference to a macro. In the
+resulting html, the reference turns into an anchor pointing to the macro's
+definition. The line of code is simply highlighted.
     << transform a part of a chunk to html >>=
     partToHtml :: String -> Part -> H.Html
     partToHtml lang part =
@@ -137,22 +141,23 @@ line of code is simply highlighted.
             where
                 link = "<a href=\"#" <++> underscored <++> "\">" <++> slim <++> "</a>"
                 slim = T.strip txt
-                underscored = underscore slim 
+                underscored = underscore slim
 
-A macro definition like the one below, is rendered as an anchor with an id, to be referred
-to by other inline anchors. This allows any macro reference to redirect the reader to its 
-definition.
+A macro definition like the one below, is rendered as an anchor with an id, to
+be referred to by other inline anchors. This allows any macro reference to
+redirect the reader to its definition.
     << wrap a chunk header in an anchor >>=
     headerToHtml :: T.Text -> H.Html
-    headerToHtml name =  H.preEscapedToHtml $ "&lt;&lt; " <++> link <++> " &gt;&gt;=\n" 
+    headerToHtml name =  H.preEscapedToHtml $ "&lt;&lt; " <++> link <++> " &gt;&gt;=\n"
         where
             link = "<a id=\"" <++> underscored <++> "\" href=\"#" <++> underscored <++> "\">" <++> slim <++> "</a>"
             slim = T.strip name
             underscored = underscore slim
 
-In order to have valid html, an `id` attribute and an `href` attribute can not contain spaces.
-However, in a `lit` file macro names can contain spaces. This helper method replaces spaces with 
-an underscore in the macro names when creating valid anchors.
+In order to have valid html, an `id` attribute and an `href` attribute can not
+contain spaces.  However, in a `lit` file macro names can contain spaces. This
+helper method replaces spaces with an underscore in the macro names when
+creating valid anchors.
     << replace spaces with underscores in anchors >>=
     underscore :: T.Text -> T.Text
     underscore txt =

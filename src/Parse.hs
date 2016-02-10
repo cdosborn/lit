@@ -7,7 +7,7 @@ import qualified Data.Text as T
 import Types
 encode :: T.Text -> String -> [Chunk]
 encode txt fileName =
-    case (parse entire fileName txt) of 
+    case (parse entire fileName txt) of
     Left err -> []
     Right result -> result
 entire :: Parser Program
@@ -33,8 +33,8 @@ title = do
     return $ (indent, T.strip name, pos)
 notDelim = noneOf ">="
 part :: String -> Parser Part
-part indent = 
-    try (string indent >> varLine) <|> 
+part indent =
+    try (string indent >> varLine) <|>
     try (string indent >> defLine) <|>
     (grabLine >>= \extra -> return $ Code extra)
 varLine :: Parser Part
@@ -48,7 +48,7 @@ defLine = do
     line <- grabLine
     return $ Code line
 grabLine :: Parser T.Text
-grabLine = do 
+grabLine = do
     line <- many (noneOf "\n\r")
     last <- newline
     return $ T.pack $ line ++ [last]
@@ -57,12 +57,12 @@ ws = char ' ' <|> char '\t'
 packM str = return $ T.pack str
 textP :: Parsec T.Text () T.Text ->  T.Text -> T.Text
 textP p txt =
-    case (parse p "" txt) of 
+    case (parse p "" txt) of
     Left err -> T.empty
     Right result -> result
 
 chunkP :: Parsec T.Text () Chunk ->  T.Text -> Maybe Chunk
 chunkP p txt =
-    case (parse p "" txt) of 
+    case (parse p "" txt) of
     Left err -> Nothing
     Right result -> Just result
