@@ -74,6 +74,7 @@ Usage: lit OPTIONS... FILES...
   -h  --html          Generate html
   -m  --markdown      Generate markdown
   -c  --code          Generate code by file extension
+  -n  --number        Add annotations to generated code noting the source lit file and line number
       --css=FILE      Specify a css file for html generation
       --docs-dir=DIR  Directory for generated docs
       --code-dir=DIR  Directory for generated code
@@ -85,9 +86,10 @@ Usage: lit OPTIONS... FILES...
 ## Build
 In order to build from the latest snapshot run:
 ```
-git clone https://github.com/cdosborn/lit.git 
+git clone https://github.com/cdosborn/lit.git;
 cd lit;
-./build.sh 
+cabal sandbox init;
+scripts/build.sh;
 ```
 
 ## Bugs
@@ -98,6 +100,5 @@ feeling motivated submit a pull request with both files added to test/.
 ## Contribute
 
 Use the online [docs](http://cdosborn.github.io/lit/lit/root.html) to explore
-the codebase. Make changes to `src/*.lit`  files, and then run `./build.sh`. It's
-well documented and will handle rebuilding, running tests, and generating
-docs. Newly generated docs must be pushed to the `gh-pages` branch.
+the codebase. Make changes to `src/*.lit`  files, and then run `./build.sh`.
+It's well documented and will handle rebuilding, running tests.
