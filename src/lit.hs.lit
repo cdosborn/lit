@@ -113,7 +113,7 @@ argument handling.
         , Option "v" ["version"]
            (NoArg
                (\_ -> do
-                   hPutStrLn stderr "Version 0.1.0.9"
+                   hPutStrLn stderr "Version 0.1.1.0"
                    exitWith ExitSuccess))
            "Print version"
 
