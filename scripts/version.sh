@@ -1,20 +1,15 @@
 #! /usr/bin/env bash
+#
+# Script to assist in versioning the project
+#
 
-# Don't forget to update version
-echo Make sure \'lit -v\' and lit.cabal have same version
-grep -n 'Version' src/lit.hs.lit
-grep -n '^version' lit.cabal
-echo "Confirm the two version numbers agree? (Y/n)"
-read agree
-
-if [[ $agree =~ [yY]+ ]]; then
-    # Generate hackage package ;)
-    cabal sdist
-
-    # Upload package to hackage
-    cabal upload ./dist/*.tar.gz
-else
-    echo "Update the version before building"
-    echo "vim -o src/lit.hs.lit lit.cabal"
-    exit 1
-fi
+CURRENT_VERSION=$(grep -Eo "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+?" src/lit.hs.lit)
+FILES_TO_EDIT=$(grep -rl "$CURRENT_VERSION" src/*lit lit.cabal)
+echo "What is the next version? (prev $CURRENT_VERSION)"
+read -e NEW_VERSION
+echo "# Run this line to replace the version easily"
+echo "     vim -c  \"execute 'bufdo %s:$CURRENT_VERSION:$NEW_VERSION:gc | w' | qa\"" $FILES_TO_EDIT
+echo "# Rebuild lit/package/upload"
+echo "     ./scripts/build.sh;"
+echo "     cabal sdist"
+echo "     cabal upload ./dist/lit-$NEW_VERSION.tar.gz"
