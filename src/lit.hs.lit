@@ -72,7 +72,7 @@ A high-level overview of `lit.hs`:
     
         , Option "n" ["number"]
            (NoArg (\opt -> return opt { optNumber = True }))
-           "Add annotations to generated code noting the lit file and line from which it came"
+           "Add annotations to generated code noting the source lit file and line number"
     
         , Option "" ["css"]
            (ReqArg

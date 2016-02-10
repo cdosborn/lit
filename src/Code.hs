@@ -17,9 +17,10 @@ annotate langExt chunks = map annotateChunk chunks
         annotateChunk (Def sourcePos name parts) = 
             Def sourcePos name $ (Code $ annotation sourcePos):parts
         annotation sourcePos = T.pack $ annotateForLang langExt (sourceName sourcePos) (sourceLine sourcePos) ++ "\n"
-        annotateForLang ".sh" filePath lineNo = "# " ++ filePath ++ ":" ++ (show lineNo)
-        annotateForLang ".hs" filePath lineNo = "-- " ++ filePath ++ ":" ++ (show lineNo)
-        annotateForLang _ filePath lineNo = "// " ++ filePath ++ ":" ++ (show lineNo)
+        annotateForLang ext filePath lineNo = (comment ext) ++ " " ++ filePath ++ ":" ++ (show lineNo)
+        comment ".sh" = "#"
+        comment ".hs" = "--"
+        comment _ = "//"
 merge :: [Chunk] -> [Chunk]
 merge = mergeAux []
 mergeAux ans [] = ans

@@ -59,13 +59,14 @@ lit file and line number
             annotateChunk (Def sourcePos name parts) = 
                 Def sourcePos name $ (Code $ annotation sourcePos):parts
             annotation sourcePos = T.pack $ annotateForLang langExt (sourceName sourcePos) (sourceLine sourcePos) ++ "\n"
+            annotateForLang ext filePath lineNo = (comment ext) ++ " " ++ filePath ++ ":" ++ (show lineNo)
             << Include an annotation for your language >>
 
 Include comments for various languages. 
     << Include an annotation for your language >>=
-    annotateForLang ".sh" filePath lineNo = "# " ++ filePath ++ ":" ++ (show lineNo)
-    annotateForLang ".hs" filePath lineNo = "-- " ++ filePath ++ ":" ++ (show lineNo)
-    annotateForLang _ filePath lineNo = "// " ++ filePath ++ ":" ++ (show lineNo)
+    comment ".sh" = "#"
+    comment ".hs" = "--"
+    comment _ = "//"
 
 `generate` depends on the following helper functions.
     << helper functions >>=
