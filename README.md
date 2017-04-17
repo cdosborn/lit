@@ -1,4 +1,4 @@
-#lit - a *modern* literate programming tool
+# lit - a *modern* literate programming tool
 
 ## What is literate programming?
 
